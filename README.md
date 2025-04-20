@@ -27,3 +27,12 @@ Sezioni al momento da sviluppare
 - Wizard installazione
 - Notifiche sistema / push
 - Gestione email utente (IMAP)
+
+Installazione
+
+Windows XAMPP
+- copiare il contenuto del file .zip in un a sottocartella di Xampp/htdocs
+- editare il file .env e modificare baseUrl con la sottocartella scelta
+- creare un nuovo db in PhpMyAdmin (eventualmente creare un utente con password di accesso)
+- eseguire le migrations con il comando 'php spark migrate --all' o in alternativa importare il dump del db (cartella db_sql del progetto)
+- eseguire il seed AdminUtente con il comando 'php spark db:seed AdminUtente'
