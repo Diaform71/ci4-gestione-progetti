@@ -1,68 +1,29 @@
-# CodeIgniter 4 Application Starter
+# CodeIgniter 4 Gestione progetti
 
-## What is CodeIgniter?
+Il progetto è basato sul framework Codeigniter 4.6.0 e template gratuito AdminLTE 
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+![immagine](https://github.com/user-attachments/assets/3f92a666-33de-4e07-aa06-40e35e076598)
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+Sezioni:
+- Anagrafiche 
+- Contatti
+- Progetti (comprende gestione sottoprogetti, vista kanban)  ![immagine](https://github.com/user-attachments/assets/7f7f3cd6-087d-442a-b5ee-e3381efa89c5)  ![immagine](https://github.com/user-attachments/assets/9d784109-92a5-41f1-8c72-f57fe34c8b85)
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+- Scadenze  ![immagine](https://github.com/user-attachments/assets/31cf73d6-a41f-4ac2-ae8d-69d047e167b5)
 
-## Installation & updates
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+- Attività (comprende gestione sottoattività)
+- Richieste d'offerta (gestione delle richieste a fornitore, stato richiesta, allegati, esportazione pdf, invio email a fornitore integrato con storico invio)
+- Offerte fornitore (gestione delle offerte ricevute, allegati)
+- Ordini d'acquisto (gestione degli ordini d'acquisto inviati, allegati, invio email integrato con storico invio)
+- Materiali (gestione dei materiali inseriti nelle richieste d'offerta e negli ordini d'acquisto, tabelle per consultare storico)       ![immagine](https://github.com/user-attachments/assets/71e7f2f8-672f-4fa3-9055-c08a60fd773d)
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+- Gestione tabella aliquote IVA
+- Gestione template email
+- Impostazioni sistema  (di base l'utente dispone delle stesse impostazioni del sistema, al momento della modifica vengono create delle impostazioni personalizzate)
 
-## Setup
-
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
-
-## Important Change with index.php
-
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
-
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
-
-**Please** read the user guide for a better explanation of how CI4 works!
-
-## Repository Management
-
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
-
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
-
-## Server Requirements
-
-PHP version 8.1 or higher is required, with the following extensions installed:
-
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
-
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - If you are still using PHP 7.4 or 8.0, you should upgrade immediately.
-> - The end of life date for PHP 8.1 will be December 31, 2025.
-
-Additionally, make sure that the following extensions are enabled in your PHP:
-
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+Sezioni al momento da sviluppare
+- Wizard installazione
+- Notifiche sistema / push
+- Gestione email utente (IMAP)
