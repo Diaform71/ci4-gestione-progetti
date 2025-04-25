@@ -23,11 +23,6 @@ Sezioni:
 - Gestione template email
 - Impostazioni sistema  (di base l'utente dispone delle stesse impostazioni del sistema, al momento della modifica vengono create delle impostazioni personalizzate)
 
-Sezioni al momento da sviluppare
-- Wizard installazione
-- Notifiche sistema / push
-- Gestione email utente (IMAP)
-
 Installazione
 
 Windows XAMPP
@@ -36,3 +31,13 @@ Windows XAMPP
 - creare un nuovo db in PhpMyAdmin (eventualmente creare un utente con password di accesso)
 - eseguire le migrations con il comando 'php spark migrate --all' o in alternativa importare il dump del db (cartella db_sql del progetto)
 - eseguire il seed AdminUtente con il comando 'php spark db:seed AdminUtente'
+
+Release 1.0.1
+- Aggiunto setup iniziale con creazione utente admin
+- Correzioni minori
+
+
+Sezioni al momento da sviluppare
+- Wizard installazione
+- Notifiche sistema / push
+- Gestione email utente (IMAP)
