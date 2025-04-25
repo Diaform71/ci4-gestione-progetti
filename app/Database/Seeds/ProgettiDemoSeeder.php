@@ -5,7 +5,7 @@ namespace App\Database\Seeds;
 use CodeIgniter\Database\Seeder;
 use CodeIgniter\I18n\Time;
 
-class CreateProgettiSeed extends Seeder
+class ProgettiDemoSeeder extends Seeder
 {
     public function run()
     {

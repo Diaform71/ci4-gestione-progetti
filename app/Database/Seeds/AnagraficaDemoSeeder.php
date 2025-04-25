@@ -5,7 +5,7 @@ namespace App\Database\Seeds;
 use CodeIgniter\Database\Seeder;
 use App\Models\AnagraficaModel;
 
-class AnagraficaSeeder extends Seeder
+class AnagraficaDemoSeeder extends Seeder
 {
     public function run()
     {

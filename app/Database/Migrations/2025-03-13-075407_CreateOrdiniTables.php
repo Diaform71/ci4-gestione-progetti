@@ -80,6 +80,14 @@ class CreateOrdiniTables extends Migration
                 'type'       => 'DATE',
                 'null'       => true,
             ],
+            'data_completamento' => [
+                'type'       => 'DATETIME',
+                'null'       => true,
+            ],
+            'data_annullamento' => [
+                'type'       => 'DATETIME',
+                'null'       => true,
+            ],
             'note' => [
                 'type'       => 'TEXT',
                 'null'       => true,

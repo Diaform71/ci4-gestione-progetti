@@ -13,6 +13,7 @@ use CodeIgniter\Filters\PageCache;
 use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
 use App\Filters\Auth;
+use App\Filters\InstallFilter;
 
 class Filters extends BaseFilters
 {
@@ -23,7 +24,7 @@ class Filters extends BaseFilters
      * @var array<string, class-string|list<class-string>>
      *
      * [filter_name => classname]
-     * or [filter_name => [classname1, classname2, ...]]
+     * or [filter_name => [filter_name => classname1, classname2, ...]]
      */
     public array $aliases = [
         'csrf'          => CSRF::class,
@@ -36,6 +37,7 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'auth'          => Auth::class,
+        'install'       => InstallFilter::class,
     ];
 
     /**
@@ -74,6 +76,12 @@ class Filters extends BaseFilters
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
+            // Rimuovo il filtro install dalla configurazione globale
+            // Riattivo il filtro di installazione con le esclusioni corrette
+            'install' => [
+                'before' => ['*'],
+                'except' => ['install', 'install/*', 'assets/*', 'dist/*', 'plugins/*', 'test', 'check-installation']
+            ],
         ],
         'after' => [
             'toolbar',
@@ -116,5 +124,10 @@ class Filters extends BaseFilters
                 'admin*',
             ],
         ],
+        // Riattivo il filtro di installazione con le esclusioni corrette
+        // 'install' => [
+        //     'before' => ['*'],
+        //     'except' => ['install', 'install/*', 'assets/*', 'dist/*', 'plugins/*', 'test', 'check-installation']
+        // ],
     ];
 }

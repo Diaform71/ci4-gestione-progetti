@@ -115,16 +115,6 @@ $routes->group('documenti', function ($routes) {
     $routes->get('delete/(:num)', 'Documenti::delete/$1');
 });
 
-// Rotte per i contatti (API per ora, viste da implementare in seguito)
-// $routes->group('api/contatti', function ($routes) {
-//     $routes->get('', 'Contatti::getContatti');
-//     $routes->get('active', 'Contatti::getActiveContatti');
-//     $routes->get('(:num)', 'Contatti::show/$1');
-//     $routes->post('', 'Contatti::create');
-//     $routes->put('(:num)', 'Contatti::update/$1');
-//     $routes->delete('(:num)', 'Contatti::delete/$1');
-// });
-
 $routes->get('api/anagrafiche/(:num)/contatti', 'AnagraficheContatti::getByAnagrafica/$1');
 $routes->get('api/contatti/(:num)/anagrafiche', 'AnagraficheContatti::getByContatto/$1');
 $routes->post('api/anagrafiche/contatti', 'AnagraficheContatti::create');
@@ -235,6 +225,19 @@ $routes->get('pdf/openOfferta/(:num)', 'PdfController::openOfferta/$1');
 $routes->get('pdf/openOrdine/(:num)', 'PdfController::openOrdine/$1');
 $routes->get('pdf/openOffertaFornitore/(:num)', 'PdfController::openOffertaFornitore/$1');
 $routes->get('pdf/openOrdineMateriale/(:num)', 'PdfController::openOrdineMateriale/$1');
+
+// Rotte per l'installazione
+$routes->get('install', 'InstallController::index');
+$routes->get('install/requirements', 'InstallController::requirements');
+$routes->match(['get', 'post'], 'install/database', 'InstallController::database');
+$routes->match(['get', 'post'], 'install/migrate', 'InstallController::migrate');
+$routes->get('install/complete', 'InstallController::complete');
+
+// Rotta per verificare l'installazione - esclusa dal filtro di installazione
+$routes->get('check-installation', 'InstallController::checkInstallation');
+
+// Rotta di diagnostica per testare il funzionamento
+$routes->get('test', 'TestController::index');
 
 /*
  * --------------------------------------------------------------------

@@ -5,7 +5,7 @@ namespace App\Database\Seeds;
 use CodeIgniter\Database\Seeder;
 use CodeIgniter\I18n\Time;
 
-class CreateAttivitaSeed extends Seeder
+class AttivitaDemoSeeder extends Seeder
 {
     public function run()
     {
