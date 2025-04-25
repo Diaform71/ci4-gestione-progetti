@@ -38,6 +38,5 @@ Release 1.0.1
 
 
 Sezioni al momento da sviluppare
-- Wizard installazione
 - Notifiche sistema / push
 - Gestione email utente (IMAP)
