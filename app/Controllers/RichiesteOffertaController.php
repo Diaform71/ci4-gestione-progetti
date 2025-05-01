@@ -461,6 +461,86 @@ final class RichiesteOffertaController extends BaseController
     }
 
     /**
+     * Crea una nuova richiesta d'offerta a partire dai materiali selezionati in un progetto
+     */
+    public function createFromProject()
+    {
+        $session = session();
+        
+        // Verifica che l'utente sia loggato
+        if (!$this->utentiModel->isLoggedIn()) {
+            $session->setFlashdata('error', 'Devi effettuare il login per creare una richiesta d\'offerta.');
+            return redirect()->to('/login');
+        }
+        
+        // Imposta l'utente corrente come creatore della richiesta
+        $idUtente = $session->get('utente_id');
+        
+        if (empty($idUtente)) {
+            $idUtente = 1; // Valore predefinito se l'utente non è in sessione
+        }
+        
+        // Ottieni la data corrente in formato ISO
+        $dataISO = date('Y-m-d');
+        
+        // Dati del form
+        $data = [
+            'numero' => $this->richiestaOffertaModel->generateNumeroRichiesta(),
+            'data' => $dataISO,
+            'oggetto' => $this->request->getPost('oggetto'),
+            'descrizione' => $this->request->getPost('descrizione'),
+            'id_anagrafica' => $this->request->getPost('id_anagrafica') ? (int)$this->request->getPost('id_anagrafica') : null,
+            'id_progetto' => $this->request->getPost('id_progetto') ? (int)$this->request->getPost('id_progetto') : null,
+            'stato' => 'bozza',
+            'id_utente_creatore' => $idUtente,
+            'note' => $this->request->getPost('note')
+        ];
+        
+        // Validazione
+        if (!$this->richiestaOffertaModel->validate($data)) {
+            return redirect()->back()
+                             ->withInput()
+                             ->with('errors', $this->richiestaOffertaModel->errors());
+        }
+        
+        // Salva la richiesta d'offerta
+        $this->richiestaOffertaModel->insert($data);
+        $idRichiesta = $this->richiestaOffertaModel->getInsertID();
+        
+        // Materiali selezionati
+        $materialiSelezionati = $this->request->getPost('materiali_selezionati');
+        
+        if (!empty($materialiSelezionati)) {
+            try {
+                $materialiArray = json_decode($materialiSelezionati, true);
+                
+                if (is_array($materialiArray) && count($materialiArray) > 0) {
+                    // Recupera i dettagli dei materiali dal database
+                    $progettoMaterialiModel = new \App\Models\ProgettoMaterialeModel();
+                    $materialiDettagli = $progettoMaterialiModel->getDettagliMateriali($materialiArray);
+                    
+                    // Aggiungi ciascun materiale alla richiesta
+                    foreach ($materialiDettagli as $materiale) {
+                        $this->richiestaMaterialeModel->insert([
+                            'id_richiesta' => $idRichiesta,
+                            'id_materiale' => $materiale['id_materiale'],
+                            'quantita' => $materiale['quantita'],
+                            'unita_misura' => $materiale['unita_misura'],
+                            'id_progetto' => $data['id_progetto']
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                log_message('error', 'Errore nell\'elaborazione dei materiali: ' . $e->getMessage());
+                $session->setFlashdata('warning', 'Richiesta creata, ma si è verificato un errore nell\'aggiunta dei materiali.');
+            }
+        }
+        
+        $session->setFlashdata('success', 'Richiesta d\'offerta creata con successo.');
+        return redirect()->to('/richieste-offerta/' . $idRichiesta);
+    }
+
+    /**
      * Aggiunge un materiale alla richiesta d'offerta
      */
     public function aggiungiMateriale($id_richiesta)

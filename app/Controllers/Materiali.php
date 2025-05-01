@@ -219,10 +219,11 @@ class Materiali extends BaseController
         }
 
         $materiali = $this->materialeModel
-            ->select('id, codice, descrizione')
+            ->select('id, codice, descrizione, produttore')
             ->groupStart()
                 ->like('codice', $term)
                 ->orLike('descrizione', $term)
+                ->orLike('produttore', $term)
             ->groupEnd()
             ->orderBy('codice', 'ASC')
             ->findAll(20); // Limitiamo i risultati a 20

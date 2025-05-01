@@ -58,10 +58,15 @@ final class ProgettiController extends BaseController
         $documentoModel = new \App\Models\DocumentoModel();
         $documenti = $documentoModel->getDocumentiByProgetto((int)$id);
         
+        // Carica i materiali del progetto
+        $progettoMaterialeModel = new \App\Models\ProgettoMaterialeModel();
+        $materiali = $progettoMaterialeModel->getMaterialiByProgetto((int)$id);
+        
         $data = [
             'title' => 'Dettagli Progetto',
             'progetto' => $progetto,
             'documenti' => $documenti,
+            'materiali' => $materiali,
         ];
         
         return view('progetti/show', $data);
@@ -148,6 +153,116 @@ final class ProgettiController extends BaseController
         // Salva il progetto
         $this->progettoModel->insert($data);
         $idProgetto = $this->progettoModel->getInsertID();
+        
+        // Verifica se le notifiche email sono attive
+        $impostazioniModel = new \App\Models\ImpostazioniModel();
+        $notificheAttive = $impostazioniModel->getImpSistema('notifiche_email_attive', false);
+        $notificaProgettoCreato = $impostazioniModel->getImpSistema('notifica_progetto_creato', false);
+        
+        // Se le notifiche sono attive e la notifica per la creazione progetto è attiva
+        if ($notificheAttive && $notificaProgettoCreato) {
+            // Carica il progetto con tutte le relazioni
+            $progetto = $this->progettoModel->getProgettoWithRelations($idProgetto);
+            
+            if ($progetto) {
+                // Determina i destinatari dell'email
+                $destinatari = [];
+                
+                // Aggiungi il responsabile del progetto se esiste
+                if (!empty($progetto['id_responsabile']) && !empty($progetto['responsabile']) && !empty($progetto['responsabile']['email'])) {
+                    // Verifica le impostazioni personali del responsabile
+                    $responsabileId = $progetto['id_responsabile'];
+                    $notificheAttivoResponsabile = $impostazioniModel->getImpUtente('notifiche_email_attive', $responsabileId, $notificheAttive);
+                    $notificaProgettoCreatpResponsabile = $impostazioniModel->getImpUtente('notifica_progetto_creato', $responsabileId, $notificaProgettoCreato);
+                    
+                    if ($notificheAttivoResponsabile && $notificaProgettoCreatpResponsabile) {
+                        $destinatari[] = $progetto['responsabile']['email'];
+                    }
+                }
+                
+                // Aggiungi il creatore del progetto se esiste e non è già stato aggiunto
+                if (!empty($progetto['id_creato_da']) && !empty($progetto['creatore']) && !empty($progetto['creatore']['email']) && 
+                    $progetto['id_creato_da'] != $progetto['id_responsabile']) {
+                    
+                    // Verifica le impostazioni personali del creatore
+                    $creatoreId = $progetto['id_creato_da'];
+                    $notificheAttivoCreatore = $impostazioniModel->getImpUtente('notifiche_email_attive', $creatoreId, $notificheAttive);
+                    $notificaProgettoCreatpCreatore = $impostazioniModel->getImpUtente('notifica_progetto_creato', $creatoreId, $notificaProgettoCreato);
+                    
+                    if ($notificheAttivoCreatore && $notificaProgettoCreatpCreatore) {
+                        $destinatari[] = $progetto['creatore']['email'];
+                    }
+                }
+                
+                // Se ci sono destinatari validi
+                if (!empty($destinatari)) {
+                    // Carica l'helper per l'invio email
+                    helper('CIMail');
+                    
+                    // Prepara l'oggetto dell'email
+                    $oggetto = "Nuovo progetto creato: " . $progetto['nome'];
+                    
+                    // Prepara il corpo dell'email
+                    $corpo = "<h2>Nuovo progetto creato</h2>";
+                    $corpo .= "<p>È stato creato un nuovo progetto nel sistema:</p>";
+                    $corpo .= "<ul>";
+                    $corpo .= "<li><strong>Nome:</strong> " . $progetto['nome'] . "</li>";
+                    $corpo .= "<li><strong>Descrizione:</strong> " . ($progetto['descrizione'] ?? 'Non specificata') . "</li>";
+                    
+                    // Aggiungi dettagli sulle date se disponibili
+                    if (!empty($progetto['data_inizio'])) {
+                        $corpo .= "<li><strong>Data inizio:</strong> " . date('d/m/Y', strtotime($progetto['data_inizio'])) . "</li>";
+                    }
+                    
+                    if (!empty($progetto['data_scadenza'])) {
+                        $corpo .= "<li><strong>Data scadenza:</strong> " . date('d/m/Y', strtotime($progetto['data_scadenza'])) . "</li>";
+                    }
+                    
+                    $corpo .= "<li><strong>Priorità:</strong> " . ucfirst($progetto['priorita']) . "</li>";
+                    $corpo .= "<li><strong>Stato:</strong> " . ucfirst(str_replace('_', ' ', $progetto['stato'])) . "</li>";
+                    
+                    // Aggiungi dettagli sul cliente se disponibili
+                    if (!empty($progetto['anagrafica']['ragione_sociale'])) {
+                        $corpo .= "<li><strong>Cliente:</strong> " . $progetto['anagrafica']['ragione_sociale'] . "</li>";
+                    }
+                    
+                    // Aggiungi link al progetto
+                    $corpo .= "</ul>";
+                    $corpo .= "<p>Per visualizzare i dettagli del progetto, <a href='" . base_url("/progetti/{$idProgetto}") . "'>clicca qui</a>.</p>";
+                    
+                    // Ottieni i dati per il mittente (l'utente che ha creato il progetto)
+                    $utente = $this->utentiModel->find($idUtente);
+                    $from = [
+                        'email' => $utente['email'] ?? '',
+                        'name' => ($utente['nome'] ?? '') . ' ' . ($utente['cognome'] ?? '')
+                    ];
+                    
+                    // Recupera configurazione SMTP
+                    $smtpConfig = [
+                        'host' => $impostazioniModel->getImpSistema('smtp_host'),
+                        'port' => $impostazioniModel->getImpSistema('smtp_port'),
+                        'user' => $impostazioniModel->getImpSistema('smtp_user'),
+                        'pass' => $impostazioniModel->getImpSistema('smtp_pass'),
+                        'from_email' => $impostazioniModel->getImpSistema('email_from'),
+                        'from_name' => $impostazioniModel->getImpSistema('email_from_name')
+                    ];
+                    
+                    // Invia l'email passando la configurazione SMTP
+                    $risultato = send_email($destinatari, $oggetto, $corpo, $from, [], [], [], [], $smtpConfig);
+                    
+                    // Registra l'esito dell'invio nei log
+                    if ($risultato['status']) {
+                        log_message('info', "Email di notifica per nuovo progetto [{$idProgetto}] inviata con successo a: " . implode(', ', $destinatari));
+                    } else {
+                        log_message('error', "Errore nell'invio email di notifica per nuovo progetto [{$idProgetto}]: " . $risultato['msg']);
+                    }
+                } else {
+                    log_message('warning', "Nessun destinatario valido trovato per la notifica del nuovo progetto [{$idProgetto}]");
+                }
+            } else {
+                log_message('error', "Impossibile caricare i dettagli del progetto [{$idProgetto}] per l'invio della notifica");
+            }
+        }
         
         $session->setFlashdata('success', 'Progetto creato con successo.');
         return redirect()->to('/progetti/' . $idProgetto);
@@ -441,5 +556,240 @@ final class ProgettiController extends BaseController
         ];
         
         return view('progetti/per_anagrafica', $data);
+    }
+
+    /**
+     * Aggiunge un materiale esistente al progetto
+     */
+    public function aggiungiMateriale($id_progetto)
+    {
+        $session = session();
+        
+        // Verifica che l'utente sia loggato
+        if (!$this->utentiModel->isLoggedIn()) {
+            $session->setFlashdata('error', 'Devi effettuare il login per modificare un progetto.');
+            return redirect()->to('/login');
+        }
+        
+        // Verifica che il progetto esista
+        $progetto = $this->progettoModel->find($id_progetto);
+        if (empty($progetto)) {
+            return redirect()->to('progetti')->with('error', 'Progetto non trovato');
+        }
+
+        // Validazione del form
+        $rules = [
+            'id_materiale' => 'required|numeric',
+            'quantita' => 'required|numeric|greater_than[0]',
+            'unita_misura' => 'permit_empty|max_length[20]',
+            'note' => 'permit_empty'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->with('error', 'Dati non validi. Verifica i campi e riprova.');
+        }
+
+        $id_materiale = $this->request->getPost('id_materiale');
+        $quantita = $this->request->getPost('quantita');
+        $unita_misura = $this->request->getPost('unita_misura') ?: 'pz';
+        $note = $this->request->getPost('note');
+
+        // Verifica che il materiale esista
+        $materialeModel = new \App\Models\Materiale();
+        $materiale = $materialeModel->find($id_materiale);
+        if (empty($materiale)) {
+            return redirect()->back()->with('error', 'Materiale non trovato');
+        }
+
+        // Verifica se il materiale è già associato al progetto
+        $progettoMaterialeModel = new \App\Models\ProgettoMaterialeModel();
+        if ($progettoMaterialeModel->esisteMateriale((int)$id_progetto, (int)$id_materiale)) {
+            return redirect()->back()->with('error', 'Questo materiale è già associato al progetto');
+        }
+
+        // Dati da inserire
+        $data = [
+            'id_progetto' => $id_progetto,
+            'id_materiale' => $id_materiale,
+            'quantita' => $quantita,
+            'unita_misura' => $unita_misura,
+            'note' => $note
+        ];
+
+        // Inserisci l'associazione
+        if ($progettoMaterialeModel->insert($data)) {
+            return redirect()->to("progetti/{$id_progetto}")->with('success', 'Materiale aggiunto con successo');
+        } else {
+            return redirect()->back()->with('error', 'Si è verificato un errore durante l\'aggiunta del materiale');
+        }
+    }
+
+    /**
+     * Aggiunge un nuovo materiale e lo associa al progetto
+     */
+    public function aggiungiNuovoMateriale($id_progetto)
+    {
+        $session = session();
+        
+        // Verifica che l'utente sia loggato
+        if (!$this->utentiModel->isLoggedIn()) {
+            $session->setFlashdata('error', 'Devi effettuare il login per modificare un progetto.');
+            return redirect()->to('/login');
+        }
+        
+        // Verifica che il progetto esista
+        $progetto = $this->progettoModel->find($id_progetto);
+        if (empty($progetto)) {
+            return redirect()->to('progetti')->with('error', 'Progetto non trovato');
+        }
+
+        // Validazione del form per il nuovo materiale
+        $rules = [
+            'codice' => 'required|min_length[1]|max_length[50]|is_unique[materiali.codice]',
+            'descrizione' => 'required',
+            'quantita' => 'required|numeric|greater_than[0]',
+            'unita_misura' => 'permit_empty|max_length[20]'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->with('error', 'Dati non validi. Verifica i campi e riprova.')
+                             ->withInput()
+                             ->with('errors', $this->validator->getErrors());
+        }
+
+        // Dati per il nuovo materiale
+        $datiMateriale = [
+            'codice' => $this->request->getPost('codice'),
+            'descrizione' => $this->request->getPost('descrizione'),
+            'materiale' => $this->request->getPost('materiale_tipo'),
+            'produttore' => $this->request->getPost('produttore'),
+            'commerciale' => $this->request->getPost('commerciale') ? 1 : 0,
+            'meccanica' => $this->request->getPost('meccanica') ? 1 : 0,
+            'elettrica' => $this->request->getPost('elettrica') ? 1 : 0,
+            'pneumatica' => $this->request->getPost('pneumatica') ? 1 : 0,
+            'in_produzione' => 1 // Nuovo materiale è in produzione di default
+        ];
+
+        // Salva il nuovo materiale
+        $materialeModel = new \App\Models\Materiale();
+        if (!$materialeModel->insert($datiMateriale)) {
+            return redirect()->back()->with('error', 'Errore durante il salvataggio del nuovo materiale: ' . json_encode($materialeModel->errors()))->withInput();
+        }
+
+        // Recupera l'ID del materiale appena inserito
+        $id_materiale = $materialeModel->getInsertID();
+
+        // Dati per l'associazione al progetto
+        $quantita = $this->request->getPost('quantita');
+        $unita_misura = $this->request->getPost('unita_misura') ?: 'pz';
+        $note = $this->request->getPost('note');
+
+        // Inserimento nella tabella progetti_materiali
+        $data = [
+            'id_progetto' => $id_progetto,
+            'id_materiale' => $id_materiale,
+            'quantita' => $quantita,
+            'unita_misura' => $unita_misura,
+            'note' => $note
+        ];
+
+        $progettoMaterialeModel = new \App\Models\ProgettoMaterialeModel();
+        if ($progettoMaterialeModel->insert($data)) {
+            return redirect()->to("progetti/{$id_progetto}")->with('success', 'Nuovo materiale creato e aggiunto al progetto con successo');
+        } else {
+            return redirect()->back()->with('error', 'Materiale creato ma errore durante l\'associazione al progetto')->withInput();
+        }
+    }
+
+    /**
+     * Aggiorna un materiale nel progetto
+     */
+    public function aggiornaMateriale($id_progetto)
+    {
+        $session = session();
+        
+        // Verifica che l'utente sia loggato
+        if (!$this->utentiModel->isLoggedIn()) {
+            $session->setFlashdata('error', 'Devi effettuare il login per modificare un progetto.');
+            return redirect()->to('/login');
+        }
+        
+        // Verifica che il progetto esista
+        $progetto = $this->progettoModel->find($id_progetto);
+        if (empty($progetto)) {
+            return redirect()->to('progetti')->with('error', 'Progetto non trovato');
+        }
+
+        // Validazione del form
+        $rules = [
+            'id' => 'required|numeric',
+            'id_materiale' => 'required|numeric',
+            'quantita' => 'required|numeric|greater_than[0]',
+            'unita_misura' => 'permit_empty|max_length[20]',
+            'note' => 'permit_empty'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->with('error', 'Dati non validi. Verifica i campi e riprova.');
+        }
+
+        $id = $this->request->getPost('id');
+        $quantita = $this->request->getPost('quantita');
+        $unita_misura = $this->request->getPost('unita_misura') ?: 'pz';
+        $note = $this->request->getPost('note');
+
+        // Verifica che il record esista
+        $progettoMaterialeModel = new \App\Models\ProgettoMaterialeModel();
+        $record = $progettoMaterialeModel->find($id);
+        if (empty($record) || $record['id_progetto'] != $id_progetto) {
+            return redirect()->back()->with('error', 'Record non trovato');
+        }
+
+        // Aggiorna il record
+        $data = [
+            'quantita' => $quantita,
+            'unita_misura' => $unita_misura,
+            'note' => $note
+        ];
+
+        if ($progettoMaterialeModel->update($id, $data)) {
+            return redirect()->to("progetti/{$id_progetto}")->with('success', 'Materiale aggiornato con successo');
+        } else {
+            return redirect()->back()->with('error', 'Si è verificato un errore durante l\'aggiornamento del materiale');
+        }
+    }
+
+    /**
+     * Rimuove un materiale dal progetto
+     */
+    public function rimuoviMateriale($id_progetto, $id_record)
+    {
+        $session = session();
+        
+        // Verifica che l'utente sia loggato
+        if (!$this->utentiModel->isLoggedIn()) {
+            $session->setFlashdata('error', 'Devi effettuare il login per modificare un progetto.');
+            return redirect()->to('/login');
+        }
+        
+        // Verifica che il progetto esista
+        $progetto = $this->progettoModel->find($id_progetto);
+        if (empty($progetto)) {
+            return redirect()->to('progetti')->with('error', 'Progetto non trovato');
+        }
+
+        // Verifica che il record esista
+        $progettoMaterialeModel = new \App\Models\ProgettoMaterialeModel();
+        $record = $progettoMaterialeModel->find($id_record);
+        if (empty($record) || $record['id_progetto'] != $id_progetto) {
+            return redirect()->back()->with('error', 'Record non trovato');
+        }
+
+        // Elimina il record (soft delete)
+        if ($progettoMaterialeModel->delete($id_record)) {
+            return redirect()->to("progetti/{$id_progetto}")->with('success', 'Materiale rimosso con successo');
+        } else {
+            return redirect()->back()->with('error', 'Si è verificato un errore durante la rimozione del materiale');
+        }
     }
 } 

@@ -5,7 +5,7 @@ use PHPMailer\PHPMailer\Exception;
 // use Config\Services;
 
 if (!function_exists('send_email')) {
-    function send_email($to, $subject, $message, $from = null, $attachments = [], $attach_pdf = [], $cc = [], $ccn = [])
+    function send_email($to, $subject, $message, $from = null, $attachments = [], $attach_pdf = [], $cc = [], $ccn = [], $smtp_config = null)
     {
         // Debug iniziale per tracciare i parametri di input
         log_message('debug', '==== INIZIO INVIO EMAIL ====');
@@ -17,6 +17,7 @@ if (!function_exists('send_email')) {
         log_message('debug', 'Mittente: ' . json_encode($from));
         log_message('debug', 'Allegati: ' . json_encode($attachments));
         log_message('debug', 'Allega PDF: ' . json_encode($attach_pdf));
+        log_message('debug', 'Config SMTP custom: ' . ($smtp_config ? 'Sì' : 'No'));
         
         // Carica ImpostazioniModel per recuperare la configurazione dal database
         $impostazioniModel = new \App\Models\ImpostazioniModel();
@@ -25,6 +26,9 @@ if (!function_exists('send_email')) {
         $user_id = null;
         if (session()->has('utente_id')) {
             $user_id = session()->get('utente_id');
+            log_message('debug', 'Utente trovato in sessione: ' . $user_id);
+        } else {
+            log_message('debug', 'Nessun utente in sessione');
         }
         
         // Recupera le impostazioni email dal database, considerando prima le impostazioni utente se disponibili
@@ -36,6 +40,25 @@ if (!function_exists('send_email')) {
         $system_from_email = null;
         $system_from_name = null;
         
+        // Se è stata passata una configurazione SMTP personalizzata, usala
+        if ($smtp_config && is_array($smtp_config)) {
+            log_message('debug', 'Utilizzo configurazione SMTP personalizzata');
+            $email_host = $smtp_config['host'] ?? null;
+            $email_port = $smtp_config['port'] ?? null;
+            $email_username = $smtp_config['user'] ?? null;
+            $email_password = $smtp_config['pass'] ?? null;
+            $email_encryption = $smtp_config['encryption'] ?? 'tls';
+            $system_from_email = $smtp_config['from_email'] ?? null;
+            $system_from_name = $smtp_config['from_name'] ?? null;
+            
+            log_message('debug', 'Config SMTP personalizzata - Host: ' . $email_host);
+            log_message('debug', 'Config SMTP personalizzata - Port: ' . $email_port);
+            log_message('debug', 'Config SMTP personalizzata - Username: ' . $email_username);
+            log_message('debug', 'Config SMTP personalizzata - From Email: ' . $system_from_email);
+            log_message('debug', 'Config SMTP personalizzata - From Name: ' . $system_from_name);
+        }
+        // Altrimenti, procedi normalmente con il recupero delle impostazioni
+        else {
         // Se abbiamo un ID utente, tenta di recuperare le impostazioni personalizzate
         if ($user_id) {
             log_message('debug', 'Tentativo di recuperare impostazioni personalizzate per utente ID: ' . $user_id);
@@ -55,29 +78,49 @@ if (!function_exists('send_email')) {
                                 ', Encryption: ' . ($email_encryption ? 'Sì' : 'No') . 
                                 ', From Email: ' . ($system_from_email ? 'Sì' : 'No') . 
                                 ', From Name: ' . ($system_from_name ? 'Sì' : 'No'));
+            }
         }
         
         // Recupera le impostazioni di sistema per qualsiasi impostazione mancante
         if (empty($email_host)) {
-            $email_host = $impostazioniModel->getImpSistema('email_host', env('EMAIL_HOST', ''));
+            $email_host = $impostazioniModel->getImpSistema('smtp_host', env('EMAIL_HOST', ''));
+            log_message('debug', 'Usando smtp_host di sistema: ' . $email_host);
         }
         if (empty($email_port)) {
-            $email_port = $impostazioniModel->getImpSistema('email_port', env('EMAIL_PORT', '587'));
+            $email_port = $impostazioniModel->getImpSistema('smtp_port', env('EMAIL_PORT', '587'));
+            log_message('debug', 'Usando smtp_port di sistema: ' . $email_port);
         }
         if (empty($email_username)) {
+            // Prova con diverse possibili chiavi
+            $email_username = $impostazioniModel->getImpSistema('smtp_user', null);
+        if (empty($email_username)) {
             $email_username = $impostazioniModel->getImpSistema('email_username', env('EMAIL_USERNAME', ''));
+            }
+            log_message('debug', 'Usando smtp_user di sistema: ' . $email_username);
         }
         if (empty($email_password)) {
+            // Prova con diverse possibili chiavi
+            $email_password = $impostazioniModel->getImpSistema('smtp_pass', null);
+        if (empty($email_password)) {
             $email_password = $impostazioniModel->getImpSistema('email_password', env('EMAIL_PASSWORD', ''));
+            }
+            log_message('debug', 'Password SMTP di sistema: ' . ($email_password ? 'Configurata' : 'Non configurata'));
         }
         if (empty($email_encryption)) {
             $email_encryption = $impostazioniModel->getImpSistema('email_encryption', env('EMAIL_ENCRYPTION', 'tls'));
+            log_message('debug', 'Usando email_encryption di sistema: ' . $email_encryption);
         }
         if (empty($system_from_email)) {
+            // Prova con diverse possibili chiavi
+            $system_from_email = $impostazioniModel->getImpSistema('email_from', null);
+        if (empty($system_from_email)) {
             $system_from_email = $impostazioniModel->getImpSistema('email_from_address', env('EMAIL_FROM_ADDRESS', ''));
+            }
+            log_message('debug', 'Usando email_from di sistema: ' . $system_from_email);
         }
         if (empty($system_from_name)) {
             $system_from_name = $impostazioniModel->getImpSistema('email_from_name', env('EMAIL_FROM_NAME', ''));
+            log_message('debug', 'Usando email_from_name di sistema: ' . $system_from_name);
         }
         
         log_message('debug', 'Impostazioni finali - Host: ' . $email_host . 
@@ -96,9 +139,16 @@ if (!function_exists('send_email')) {
         log_message('debug', 'File PHPMailer - PHPMailer: ' . $phpmailer_path . ' (Esiste: ' . (file_exists($phpmailer_path) ? 'Sì' : 'No') . ')');
         log_message('debug', 'File PHPMailer - SMTP: ' . $smtp_path . ' (Esiste: ' . (file_exists($smtp_path) ? 'Sì' : 'No') . ')');
 
+        // Verifica se le classi PHPMailer sono già caricate prima di includerle
+        if (!class_exists('PHPMailer\\PHPMailer\\Exception')) {
         require 'PHPMailer/src/Exception.php';
+        }
+        if (!class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
         require 'PHPMailer/src/PHPMailer.php';
+        }
+        if (!class_exists('PHPMailer\\PHPMailer\\SMTP')) {
         require 'PHPMailer/src/SMTP.php';
+        }
 
         try {
             $mail = new PHPMailer(true);

@@ -234,6 +234,33 @@
                             </a>
                         </li>
                         
+                        <!-- Gestione Utenti (solo admin) -->
+                        <?php if (session()->has('is_admin') && session('is_admin')): ?>
+                        <li class="nav-item has-treeview">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-users"></i>
+                                <p>
+                                    Gestione Utenti
+                                    <i class="fas fa-angle-left right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="<?= base_url('utenti') ?>" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Lista Utenti</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="<?= base_url('utenti/new') ?>" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Nuovo Utente</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <?php endif; ?>
+                        
                         <!-- Template Email (solo admin) -->
                         <?php if (session()->has('is_admin') && session('is_admin')): ?>
                         <li class="nav-item">

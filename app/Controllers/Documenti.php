@@ -59,15 +59,29 @@ class Documenti extends BaseController
             return redirect()->back();
         }
         
+        // Debug della sessione
+        $sessionData = $this->session->get();
+        log_message('debug', 'Dati di sessione: ' . json_encode($sessionData));
+        
+        // Recupero più sicuro dell'ID utente
+        $id_utente = $this->session->get('utente_id');
+        
+        // Se non è disponibile, tentiamo con session()
+        if (empty($id_utente)) {
+            $id_utente = session('utente_id');
+            log_message('debug', 'Secondo tentativo per ID utente (usando session()): ' . ($id_utente ?? 'non trovato'));
+        }
+        
         // Prepara dati per il modello
         $data = [
             'id_progetto' => $id_progetto,
-            'id_utente' => $this->session->get('utente_id'), // Usa la chiave corretta dalla sessione
+            'id_utente' => $id_utente,
             'descrizione' => $descrizione
         ];
         
         // Se l'ID utente non è presente in sessione, gestisci l'errore
         if (empty($data['id_utente'])) {
+            log_message('error', 'Upload documento fallito: ID utente non trovato in sessione');
             $this->session->setFlashdata('error', 'Errore: impossibile identificare l\'utente. Effettua nuovamente il login.');
             return redirect()->back();
         }
@@ -122,7 +136,7 @@ class Documenti extends BaseController
         $id_progetto = $documento['id_progetto'];
         
         // Aggiorna documento
-        $result = $this->documentoModel->updateDocumento($id_documento, [
+        $result = $this->documentoModel->updateDocumento((int)$id_documento, [
             'nome_originale' => $nome,
             'descrizione' => $descrizione
         ]);

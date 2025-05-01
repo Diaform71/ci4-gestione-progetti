@@ -198,8 +198,14 @@ final class ProgettoModel extends Model
      * @param int $giorni
      * @return array
      */
-    public function getProjectsInScadenza(int $giorni = 7): array
+    public function getProjectsInScadenza(int $giorni = null): array
     {
+        // Se non viene fornito un valore per i giorni, utilizziamo l'impostazione di sistema
+        if ($giorni === null) {
+            $impostazioniModel = new \App\Models\ImpostazioniModel();
+            $giorni = $impostazioniModel->getImpSistema('giorni_anticipo_notifica_scadenza', 3);
+        }
+        
         $dataLimite = date('Y-m-d', strtotime('+' . $giorni . ' days'));
         
         return $this->where('data_scadenza <=', $dataLimite)

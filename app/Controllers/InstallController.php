@@ -111,23 +111,68 @@ class InstallController extends BaseController
                     'DBCollat' => 'utf8_general_ci'
                 ];
 
-                // Aggiorna il file .env
-                $this->updateEnvFile($dbConfig);
-
-                $this->session->set('db_config', $dbConfig);
-
-                // Tenta la connessione al database
+                // Tenta la connessione al server database (senza specificare il database)
                 try {
-                    $db = \Config\Database::connect();
+                    // Primo tentativo: connessione al server MySQL senza specificare il database
+                    $dbServer = [
+                        'hostname' => $dbConfig['hostname'],
+                        'username' => $dbConfig['username'],
+                        'password' => $dbConfig['password'],
+                        'database' => '',
+                        'DBDriver' => 'MySQLi',
+                        'port'     => $dbConfig['port'],
+                        'DBPrefix' => $dbConfig['prefix'],
+                        'charset'  => 'utf8',
+                        'DBCollat' => 'utf8_general_ci'
+                    ];
+                    
+                    $db = \Config\Database::connect($dbServer);
                     $db->initialize();
-
+                    
                     if ($db->connID) {
-                        return redirect()->to(site_url('install/migrate'));
+                        // Verifica se il database esiste
+                        $dbName = $dbConfig['database'];
+                        $query = $db->query("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '$dbName'");
+                        
+                        if ($query->getNumRows() === 0) {
+                            // Il database non esiste, proviamo a crearlo
+                            try {
+                                $db->query("CREATE DATABASE `$dbName` CHARACTER SET utf8 COLLATE utf8_general_ci");
+                                // Registriamo nel log il successo
+                                log_message('info', "Database '$dbName' creato con successo.");
+                            } catch (\Exception $e) {
+                                return view('install/database', [
+                                    'title' => 'Configurazione Database',
+                                    'error' => "Impossibile creare il database '$dbName'. Errore: " . $e->getMessage(),
+                                    'validation' => $this->validator
+                                ]);
+                            }
+                        }
+                        
+                        // Aggiorna il file .env
+                        $this->updateEnvFile($dbConfig);
+                        $this->session->set('db_config', $dbConfig);
+                        
+                        // Ora tentiamo di connetterci al database appena creato/esistente
+                        try {
+                            $db = \Config\Database::connect($dbConfig);
+                            $db->initialize();
+                            
+                            if ($db->connID) {
+                                return redirect()->to(site_url('install/migrate'));
+                            }
+                        } catch (\Exception $e) {
+                            return view('install/database', [
+                                'title' => 'Configurazione Database',
+                                'error' => "Connessione al database fallita: " . $e->getMessage(),
+                                'validation' => $this->validator
+                            ]);
+                        }
                     }
                 } catch (\Exception $e) {
                     return view('install/database', [
-                        'title' => 'Configurazione Database fallita',
-                        'error' => $e->getMessage(),
+                        'title' => 'Configurazione Database',
+                        'error' => "Connessione al server database fallita: " . $e->getMessage(),
                         'validation' => $this->validator
                     ]);
                 }

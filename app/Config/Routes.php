@@ -40,11 +40,11 @@ $routes->post('cambio-password', 'Auth::aggiornaPassword');
 
 // Rotte per il profilo utente
 $routes->get('profilo', 'Utenti::profilo');
-$routes->get('profilo/modifica', 'Utenti::modificaProfilo');
-$routes->post('profilo/aggiorna', 'Utenti::aggiornaProfilo');
+$routes->get('modifica-profilo', 'Utenti::modificaProfilo');
+$routes->post('aggiorna-profilo', 'Utenti::aggiornaProfilo');
 
 // Rotte per le anagrafiche
-$routes->group('anagrafiche', function ($routes) {
+$routes->group('anagrafiche', ['filter' => 'auth'], function ($routes) {
     $routes->get('', 'Anagrafiche::index');
     $routes->get('new', 'Anagrafiche::new');
     $routes->post('create', 'Anagrafiche::create');
@@ -57,7 +57,7 @@ $routes->group('anagrafiche', function ($routes) {
 });
 
 // Rotte per le aliquote IVA
-$routes->group('aliquote-iva', function ($routes) {
+$routes->group('aliquote-iva', ['filter' => 'auth'], function ($routes) {
     $routes->get('', 'AliquoteIva::index');
     $routes->get('new', 'AliquoteIva::new');
     $routes->post('create', 'AliquoteIva::create');
@@ -68,7 +68,7 @@ $routes->group('aliquote-iva', function ($routes) {
 });
 
 // Rotte per i materiali
-$routes->group('materiali', function ($routes) {
+$routes->group('materiali', ['filter' => 'auth'], function ($routes) {
     $routes->get('', 'Materiali::index');
     $routes->get('new', 'Materiali::new');
     $routes->post('create', 'Materiali::create');
@@ -76,10 +76,11 @@ $routes->group('materiali', function ($routes) {
     $routes->get('edit/(:num)', 'Materiali::edit/$1');
     $routes->post('update/(:num)', 'Materiali::update/$1');
     $routes->get('delete/(:num)', 'Materiali::delete/$1');
+    $routes->get('search', 'Materiali::search');
 });
 
 // Rotte per i contatti
-$routes->group('contatti', function ($routes) {
+$routes->group('contatti', ['filter' => 'auth'], function ($routes) {
     $routes->get('', 'Contatti::index');
     $routes->get('new', 'Contatti::new');
     $routes->post('create', 'Contatti::create');
@@ -90,7 +91,7 @@ $routes->group('contatti', function ($routes) {
 });
 
 // Rotte per i progetti
-$routes->group('progetti', function ($routes) {
+$routes->group('progetti', ['filter' => 'auth'], function ($routes) {
     $routes->get('', 'ProgettiController::index');
     $routes->get('new', 'ProgettiController::new');
     $routes->post('create', 'ProgettiController::create');
@@ -105,10 +106,16 @@ $routes->group('progetti', function ($routes) {
     $routes->get('in-scadenza/(:num)', 'ProgettiController::inScadenza/$1');
     $routes->get('in-scadenza', 'ProgettiController::inScadenza');
     $routes->get('per-anagrafica/(:num)', 'ProgettiController::perAnagrafica/$1');
+    
+    // Rotte per la gestione dei materiali nei progetti
+    $routes->post('aggiungi-materiale/(:num)', 'ProgettiController::aggiungiMateriale/$1');
+    $routes->post('aggiungi-nuovo-materiale/(:num)', 'ProgettiController::aggiungiNuovoMateriale/$1');
+    $routes->post('aggiorna-materiale/(:num)', 'ProgettiController::aggiornaMateriale/$1');
+    $routes->get('rimuovi-materiale/(:num)/(:num)', 'ProgettiController::rimuoviMateriale/$1/$2');
 });
 
 // Rotte per i documenti
-$routes->group('documenti', function ($routes) {
+$routes->group('documenti', ['filter' => 'auth'], function ($routes) {
     $routes->post('upload', 'Documenti::upload');
     $routes->post('update', 'Documenti::update');
     $routes->get('download/(:num)', 'Documenti::download/$1');
@@ -165,6 +172,7 @@ $routes->group('richieste-offerta', ['filter' => 'auth'], function ($routes) {
     $routes->get('/', 'RichiesteOffertaController::index');
     $routes->get('new', 'RichiesteOffertaController::new');
     $routes->post('create', 'RichiesteOffertaController::create');
+    $routes->post('create-from-project', 'RichiesteOffertaController::createFromProject');
     $routes->get('(:num)', 'RichiesteOffertaController::show/$1');
     $routes->get('edit/(:num)', 'RichiesteOffertaController::edit/$1');
     $routes->post('update/(:num)', 'RichiesteOffertaController::update/$1');
@@ -174,6 +182,12 @@ $routes->group('richieste-offerta', ['filter' => 'auth'], function ($routes) {
     $routes->post('get-richieste-by-fornitore', 'RichiesteOffertaController::getRichiesteByFornitore');
     $routes->get('per-fornitore/(:num)', 'RichiesteOffertaController::perFornitore/$1');
     $routes->get('per-progetto/(:num)', 'RichiesteOffertaController::perProgetto/$1');
+
+    // Rotte per la gestione dei materiali nelle richieste d'offerta
+    $routes->post('aggiungi-materiale/(:num)', 'RichiesteOffertaController::aggiungiMateriale/$1');
+    $routes->post('aggiungi-nuovo-materiale/(:num)', 'RichiesteOffertaController::aggiungiNuovoMateriale/$1');
+    $routes->post('aggiorna-materiale/(:num)', 'RichiesteOffertaController::aggiornaMateriale/$1');
+    $routes->get('rimuovi-materiale/(:num)/(:num)', 'RichiesteOffertaController::rimuoviMateriale/$1/$2');
     
     // Rotte per la gestione delle email
     $routes->post('invia-email/(:num)', 'RichiesteOffertaController::inviaEmail/$1');
@@ -181,15 +195,6 @@ $routes->group('richieste-offerta', ['filter' => 'auth'], function ($routes) {
     $routes->get('visualizza-email/(:num)', 'RichiesteOffertaController::visualizzaEmail/$1');
     $routes->post('rispondi-email/(:num)', 'RichiesteOffertaController::rispondiEmail/$1');
 });
-
-// Rotte per la gestione dei materiali nelle richieste d'offerta
-$routes->post('richieste-offerta/aggiungi-materiale/(:num)', 'RichiesteOffertaController::aggiungiMateriale/$1');
-$routes->post('richieste-offerta/aggiungi-nuovo-materiale/(:num)', 'RichiesteOffertaController::aggiungiNuovoMateriale/$1');
-$routes->post('richieste-offerta/aggiorna-materiale/(:num)', 'RichiesteOffertaController::aggiornaMateriale/$1');
-$routes->get('richieste-offerta/rimuovi-materiale/(:num)/(:num)', 'RichiesteOffertaController::rimuoviMateriale/$1/$2');
-
-// Rotte per la ricerca dei materiali
-$routes->get('materiali/search', 'Materiali::search');
 
 // Rotte per le impostazioni
 $routes->group('impostazioni', ['filter' => 'auth'], function ($routes) {
@@ -220,41 +225,28 @@ $routes->group('email-templates', ['filter' => 'auth'], function ($routes) {
 });
 
 // PDF Routes
-$routes->get('pdf/openRDO/(:num)', 'PdfController::openRDO/$1');
-$routes->get('pdf/openOfferta/(:num)', 'PdfController::openOfferta/$1');
-$routes->get('pdf/openOrdine/(:num)', 'PdfController::openOrdine/$1');
-$routes->get('pdf/openOffertaFornitore/(:num)', 'PdfController::openOffertaFornitore/$1');
-$routes->get('pdf/openOrdineMateriale/(:num)', 'PdfController::openOrdineMateriale/$1');
+$routes->group('pdf', ['filter' => 'auth'], function ($routes) {
+    $routes->get('openRDO/(:num)', 'PdfController::openRDO/$1');
+    $routes->get('openOfferta/(:num)', 'PdfController::openOfferta/$1');
+    $routes->get('openOrdine/(:num)', 'PdfController::openOrdine/$1');
+    $routes->get('openOffertaFornitore/(:num)', 'PdfController::openOffertaFornitore/$1');
+    $routes->get('openOrdineMateriale/(:num)', 'PdfController::openOrdineMateriale/$1');
+});
 
 // Rotte per l'installazione
-$routes->get('install', 'InstallController::index');
-$routes->get('install/requirements', 'InstallController::requirements');
-$routes->match(['get', 'post'], 'install/database', 'InstallController::database');
-$routes->match(['get', 'post'], 'install/migrate', 'InstallController::migrate');
-$routes->get('install/complete', 'InstallController::complete');
+$routes->group('install', function ($routes) {
+    $routes->get('', 'InstallController::index');
+    $routes->get('requirements', 'InstallController::requirements');
+    $routes->match(['GET', 'POST'], 'database', 'InstallController::database');
+    $routes->match(['GET', 'POST'], 'migrate', 'InstallController::migrate');
+    $routes->get('complete', 'InstallController::complete');
+});
 
 // Rotta per verificare l'installazione - esclusa dal filtro di installazione
 $routes->get('check-installation', 'InstallController::checkInstallation');
 
 // Rotta di diagnostica per testare il funzionamento
 $routes->get('test', 'TestController::index');
-
-/*
- * --------------------------------------------------------------------
- * Additional Routing
- * --------------------------------------------------------------------
- *
- * There will often be times that you need additional routing and you
- * need it to be able to override any defaults in this file. Environment
- * based routes is one such time. require() additional route files here
- * to make that happen.
- *
- * You will have access to the $routes object within that file without
- * needing to reload it.
- */
-if (is_file(APPPATH . 'Config/' . ENVIRONMENT . '/Routes.php')) {
-    require APPPATH . 'Config/' . ENVIRONMENT . '/Routes.php';
-}
 
 // Rotte per le offerte fornitore
 $routes->group('offerte-fornitore', ['filter' => 'auth'], function ($routes) {
@@ -317,3 +309,30 @@ $routes->group('ordini-materiale', ['filter' => 'auth'], function ($routes) {
     $routes->post('get-contatti-by-anagrafica', 'OrdiniMaterialeController::getContattiByAnagrafica');
     $routes->post('get-ordini-by-fornitore', 'OrdiniMaterialeController::getOrdiniByFornitore');
 });
+
+// Gestione Utenti (solo admin)
+$routes->group('utenti', static function ($routes) {
+    $routes->get('/', 'Utenti::index');
+    $routes->get('new', 'Utenti::new');
+    $routes->post('create', 'Utenti::create');
+    $routes->get('edit/(:num)', 'Utenti::edit/$1');
+    $routes->post('update/(:num)', 'Utenti::update/$1');
+    $routes->get('delete/(:num)', 'Utenti::delete/$1');
+});
+
+/*
+ * --------------------------------------------------------------------
+ * Additional Routing
+ * --------------------------------------------------------------------
+ *
+ * There will often be times that you need additional routing and you
+ * need it to be able to override any defaults in this file. Environment
+ * based routes is one such time. require() additional route files here
+ * to make that happen.
+ *
+ * You will have access to the $routes object within that file without
+ * needing to reload it.
+ */
+if (is_file(APPPATH . 'Config/' . ENVIRONMENT . '/Routes.php')) {
+    require APPPATH . 'Config/' . ENVIRONMENT . '/Routes.php';
+}

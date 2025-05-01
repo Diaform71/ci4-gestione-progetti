@@ -58,7 +58,7 @@
                     <?php endif; ?>
                 </h3>
                 
-                <div class="btn-group">
+                <div class="card-tools">
                     <a href="<?= base_url('scadenze/modifica/' . $scadenza['id']) ?>" class="btn btn-sm btn-primary">
                         <i class="fas fa-edit"></i> Modifica
                     </a>
