@@ -219,6 +219,7 @@ class InstallController extends BaseController
                 // Esegui i seeder iniziali
                 $seeder = \Config\Database::seeder();
                 $seeder->call('ImpostazioniSeeder');
+                $seeder->call('CondizioniPagamentoSeeder');
 
                 // Crea l'account amministratore
                 $adminData = [

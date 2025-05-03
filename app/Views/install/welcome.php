@@ -7,7 +7,8 @@
 <?= $this->section('styles') ?>
 <style>
         .install-box {
-            max-width: 800px;
+            max-width: 1000px;
+            min-width: 600px;
             margin: 0 auto;
         }
         .login-page, .register-page {
@@ -45,7 +46,7 @@
 
 <?= $this->section('install_box') ?>
 <div class="install-box">
-    <div class="card">
+    <div class="card shadow-lg">
         <div class="card-header bg-primary">
             <h4 class="mb-0 text-white"><i class="fas fa-cog mr-2"></i> Installazione Applicazione</h4>
         </div>

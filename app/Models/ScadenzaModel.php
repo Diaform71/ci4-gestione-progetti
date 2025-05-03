@@ -28,7 +28,8 @@ final class ScadenzaModel extends Model
         'completata',
         'completata_il',
         'priorita',
-        'stato'
+        'stato',
+        'id_ordine_materiale'
     ];
 
     // Dates

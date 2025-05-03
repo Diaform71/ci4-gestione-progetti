@@ -210,6 +210,87 @@
 
         <div class="row mb-3">
             <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="crea_scadenza" id="crea_scadenza" value="1">
+                            <label class="form-check-label font-weight-bold" for="crea_scadenza">
+                                Crea automaticamente una scadenza per questo ordine
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-body" id="scadenza_details" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="titolo_scadenza">Titolo scadenza:</label>
+                                <input type="text" class="form-control" id="titolo_scadenza" name="titolo_scadenza" 
+                                       placeholder="Titolo della scadenza" value="Gestione ordine - #">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="data_scadenza">Data scadenza:</label>
+                                <div class="input-group date" id="scadenza_datepicker" data-target-input="nearest">
+                                    <input type="text" class="form-control datetimepicker-input" 
+                                           id="data_scadenza_display" 
+                                           data-target="#scadenza_datepicker" data-toggle="datetimepicker"
+                                           value="<?= date('d/m/Y', strtotime('+7 days')) ?>">
+                                    <input type="hidden" name="data_scadenza" id="data_scadenza" 
+                                           value="<?= date('Y-m-d', strtotime('+7 days')) ?>">
+                                    <div class="input-group-append" data-target="#scadenza_datepicker" data-toggle="datetimepicker">
+                                        <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="priorita_scadenza">Priorità:</label>
+                                <select name="priorita_scadenza" id="priorita_scadenza" class="form-control">
+                                    <option value="bassa">Bassa</option>
+                                    <option value="media" selected>Media</option>
+                                    <option value="alta">Alta</option>
+                                    <option value="urgente">Urgente</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="stato_scadenza">Stato:</label>
+                                <select name="stato_scadenza" id="stato_scadenza" class="form-control">
+                                    <option value="da_iniziare" selected>Da iniziare</option>
+                                    <option value="in_corso">In corso</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="id_utente_assegnato">Assegnata a:</label>
+                                <select name="id_utente_assegnato" id="id_utente_assegnato" class="form-control select2">
+                                    <option value="">- Seleziona un utente -</option>
+                                    <?php 
+                                    // Ottieni gli utenti attivi
+                                    $utentiModel = new \App\Models\UtentiModel();
+                                    $utenti = $utentiModel->where('attivo', 1)->findAll();
+                                    foreach ($utenti as $utente): ?>
+                                        <option value="<?= $utente['id'] ?>" 
+                                            <?= session()->get('utente_id') == $utente['id'] ? 'selected' : '' ?>>
+                                            <?= esc($utente['nome']) ?> <?= esc($utente['cognome']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="descrizione_scadenza">Descrizione:</label>
+                                <textarea class="form-control" id="descrizione_scadenza" name="descrizione_scadenza" 
+                                          rows="3">Gestire l'ordine di acquisto e la relativa consegna</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-12">
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Crea Ordine</button>
                 <a href="<?= site_url('ordini-materiale') ?>" class="btn btn-secondary"><i class="fas fa-times"></i> Annulla</a>
             </div>
@@ -226,7 +307,7 @@
 <script>
 $(function () {
     // Inizializza i selettori di data
-    $('#datepicker, #data_consegna_prevista_picker').datetimepicker({
+    $('#datepicker, #data_consegna_prevista_picker, #scadenza_datepicker').datetimepicker({
         format: 'DD/MM/YYYY',
         locale: 'it',
         icons: {
@@ -258,11 +339,38 @@ $(function () {
             $('#data_consegna_prevista').val('');
         }
     });
+    
+    $('#scadenza_datepicker').on('change.datetimepicker', function(e) {
+        if (e.date) {
+            $('#data_scadenza').val(e.date.format('YYYY-MM-DD'));
+        } else {
+            $('#data_scadenza').val('');
+        }
+    });
 
     // Inizializza Select2
     $('.select2').select2({
         theme: 'bootstrap4',
         width: '100%'
+    });
+    
+    // Gestione checkbox creazione scadenza
+    $('#crea_scadenza').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#scadenza_details').slideDown();
+        } else {
+            $('#scadenza_details').slideUp();
+        }
+    });
+    
+    // Aggiorna il titolo della scadenza quando cambia l'oggetto dell'ordine
+    $('#oggetto').on('change keyup', function() {
+        var oggetto = $(this).val();
+        if (oggetto) {
+            $('#titolo_scadenza').val('Gestione ordine - ' + oggetto);
+        } else {
+            $('#titolo_scadenza').val('Gestione ordine - #');
+        }
     });
 
     // Carica i contatti quando viene selezionato un fornitore
@@ -364,6 +472,23 @@ $(function () {
             },
             id_anagrafica: {
                 required: true
+            },
+            // Regole per scadenza (solo se checkbox attiva)
+            titolo_scadenza: {
+                required: function() {
+                    return $('#crea_scadenza').is(':checked');
+                },
+                minlength: 3
+            },
+            data_scadenza: {
+                required: function() {
+                    return $('#crea_scadenza').is(':checked');
+                }
+            },
+            id_utente_assegnato: {
+                required: function() {
+                    return $('#crea_scadenza').is(':checked');
+                }
             }
         },
         messages: {
@@ -376,6 +501,16 @@ $(function () {
             },
             id_anagrafica: {
                 required: "Seleziona un fornitore"
+            },
+            titolo_scadenza: {
+                required: "Inserisci il titolo della scadenza",
+                minlength: "Il titolo deve essere di almeno {0} caratteri"
+            },
+            data_scadenza: {
+                required: "Inserisci la data della scadenza"
+            },
+            id_utente_assegnato: {
+                required: "Seleziona l'utente a cui assegnare la scadenza"
             }
         },
         errorElement: 'span',

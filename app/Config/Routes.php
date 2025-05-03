@@ -39,9 +39,11 @@ $routes->get('cambio-password', 'Auth::cambioPassword');
 $routes->post('cambio-password', 'Auth::aggiornaPassword');
 
 // Rotte per il profilo utente
-$routes->get('profilo', 'Utenti::profilo');
-$routes->get('modifica-profilo', 'Utenti::modificaProfilo');
-$routes->post('aggiorna-profilo', 'Utenti::aggiornaProfilo');
+$routes->group('profilo', ['filter' => 'auth'], function ($routes) {
+    $routes->get('', 'Utenti::profilo');
+    $routes->get('modifica', 'Utenti::modificaProfilo');
+    $routes->post('aggiorna', 'Utenti::aggiornaProfilo');
+});
 
 // Rotte per le anagrafiche
 $routes->group('anagrafiche', ['filter' => 'auth'], function ($routes) {

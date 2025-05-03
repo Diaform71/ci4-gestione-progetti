@@ -7,7 +7,8 @@
 <?= $this->section('styles') ?>
 <style>
     .install-box {
-        max-width: 800px;
+        max-width: 1000px;
+        min-width: 600px;
         margin: 0 auto;
     }
 

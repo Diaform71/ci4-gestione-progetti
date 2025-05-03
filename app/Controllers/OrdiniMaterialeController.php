@@ -249,12 +249,59 @@ final class OrdiniMaterialeController extends BaseController
             // Aggiorna l'importo totale dell'ordine
             $this->aggiornaImportoTotale($idOrdine);
             
+            // Verifica se è richiesta la creazione di una scadenza
+            if ($this->request->getPost('crea_scadenza')) {
+                $this->creaScadenzaPerOrdine($idOrdine);
+            }
+            
             $session->setFlashdata('success', 'Ordine creato con successo.');
             return redirect()->to('/ordini-materiale/' . $idOrdine);
         } else {
             return redirect()->back()
                             ->withInput()
                             ->with('errors', $this->ordineMaterialeModel->errors());
+        }
+    }
+    
+    /**
+     * Crea una scadenza associata ad un ordine
+     */
+    private function creaScadenzaPerOrdine($idOrdine)
+    {
+        // Recupera i dati dell'ordine
+        $ordine = $this->ordineMaterialeModel->find($idOrdine);
+        if (!$ordine) {
+            return false;
+        }
+        
+        // Recupera i dati dal form
+        $dataScadenzaItaliana = $this->request->getPost('data_scadenza');
+        $dataScadenzaISO = formatDateToISO($dataScadenzaItaliana);
+        
+        // Prepara i dati per la creazione della scadenza
+        $datiScadenza = [
+            'titolo' => $this->request->getPost('titolo_scadenza'),
+            'descrizione' => $this->request->getPost('descrizione_scadenza') . "\n\nOrdine #" . $ordine['numero'],
+            'data_scadenza' => $dataScadenzaISO,
+            'priorita' => $this->request->getPost('priorita_scadenza') ?: 'media',
+            'stato' => $this->request->getPost('stato_scadenza') ?: 'da_iniziare',
+            'id_utente_assegnato' => (int)$this->request->getPost('id_utente_assegnato'),
+            'id_utente_creatore' => session()->get('utente_id'),
+            'id_progetto' => $ordine['id_progetto'],
+            'id_ordine_materiale' => $idOrdine,
+            'completata' => 0
+        ];
+        
+        // Crea la scadenza utilizzando il modello
+        $scadenzaModel = new \App\Models\ScadenzaModel();
+        $risultato = $scadenzaModel->creaScadenza($datiScadenza);
+        
+        if ($risultato) {
+            session()->setFlashdata('message', 'Scadenza creata automaticamente per questo ordine.');
+            return true;
+        } else {
+            session()->setFlashdata('warning', 'Impossibile creare la scadenza automatica.');
+            return false;
         }
     }
     
