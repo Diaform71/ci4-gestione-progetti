@@ -209,6 +209,16 @@ $routes->group('impostazioni', ['filter' => 'auth'], function ($routes) {
     $routes->get('reimposta/(:num)', 'ImpostazioniController::reimpostaDefault/$1');
 });
 
+// Rotte per le condizioni di pagamento
+$routes->group('condizioni-pagamento', ['filter' => 'auth'], function ($routes) {
+    $routes->get('/', 'CondizioniPagamentoController::index');
+    $routes->get('new', 'CondizioniPagamentoController::new');
+    $routes->post('create', 'CondizioniPagamentoController::create');
+    $routes->get('edit/(:num)', 'CondizioniPagamentoController::edit/$1');
+    $routes->post('update/(:num)', 'CondizioniPagamentoController::update/$1');
+    $routes->get('delete/(:num)', 'CondizioniPagamentoController::delete/$1');
+});
+
 // Rotte per i template email
 $routes->group('email-templates', ['filter' => 'auth'], function ($routes) {
     $routes->get('/', 'EmailTemplateController::index');

@@ -14,6 +14,7 @@ use App\Models\OrdineMaterialeVoceModel;
 use App\Models\Materiale;
 use App\Models\OffertaFornitoreModel;
 use App\Models\OffertaFornitoreVoceModel;
+use App\Models\CondizioniPagamentoModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
 
@@ -29,6 +30,7 @@ final class OrdiniMaterialeController extends BaseController
     protected $ordineMaterialeVoceModel;
     protected $offertaFornitoreModel;
     protected $offertaFornitoreVoceModel;
+    protected $condizioniPagamentoModel;
     
     public function __construct()
     {
@@ -43,6 +45,7 @@ final class OrdiniMaterialeController extends BaseController
         $this->ordineMaterialeVoceModel = new OrdineMaterialeVoceModel();
         $this->offertaFornitoreModel = new OffertaFornitoreModel();
         $this->offertaFornitoreVoceModel = new OffertaFornitoreVoceModel();
+        $this->condizioniPagamentoModel = new CondizioniPagamentoModel();
     }
     
     /**
@@ -166,11 +169,15 @@ final class OrdiniMaterialeController extends BaseController
         // Debug: conta quante offerte sono state trovate
         $session->setFlashdata('info', 'Trovate ' . count($offerteFornitore) . ' offerte totali');
         
+        // Ottieni le condizioni di pagamento
+        $condizioniPagamento = $this->condizioniPagamentoModel->getCondizioni();
+        
         $data = [
             'title' => 'Nuovo Ordine di Acquisto',
             'fornitori' => $this->anagraficaModel->where('fornitore', 1)->where('attivo', 1)->findAll(),
             'progetti' => $this->progettoModel->where('attivo', 1)->findAll(),
-            'offerteFornitore' => $offerteFornitore
+            'offerteFornitore' => $offerteFornitore,
+            'condizioniPagamento' => $condizioniPagamento
         ];
         
         return view('ordini_materiale/create', $data);
@@ -216,6 +223,7 @@ final class OrdiniMaterialeController extends BaseController
             'stato' => 'bozza',
             'id_utente_creatore' => $idUtente,
             'condizioni_pagamento' => $this->request->getPost('condizioni_pagamento'),
+            'id_condizione_pagamento' => $this->request->getPost('id_condizione_pagamento') ? (int)$this->request->getPost('id_condizione_pagamento') : null,
             'condizioni_consegna' => $this->request->getPost('condizioni_consegna'),
             'data_consegna_prevista' => $dataConsegnaPrevistaISO,
             'id_offerta_fornitore' => $this->request->getPost('id_offerta_fornitore') ? (int)$this->request->getPost('id_offerta_fornitore') : null,
@@ -1686,5 +1694,42 @@ final class OrdiniMaterialeController extends BaseController
                 'errors' => $this->ordineMaterialeModel->errors()
             ]);
         }
+    }
+
+    /**
+     * Mostra il form per creare un nuovo ordine
+     */
+    public function showCreateForm()
+    {
+        $session = session();
+        
+        // Verifica che l'utente sia loggato
+        if (!$this->utentiModel->isLoggedIn()) {
+            $session->setFlashdata('error', 'Devi effettuare il login per creare un ordine.');
+            return redirect()->to('/login');
+        }
+        
+        // Ottieni tutte le offerte fornitore per il dropdown (rimuovo filtro per stato)
+        $offerteFornitore = $this->offertaFornitoreModel->select('offerte_fornitore.*, anagrafiche.ragione_sociale as nome_fornitore')
+            ->join('anagrafiche', 'anagrafiche.id = offerte_fornitore.id_anagrafica', 'left')
+            // Filtro per stato rimosso per debugging
+            ->orderBy('offerte_fornitore.data', 'DESC')
+            ->findAll();
+            
+        // Debug: conta quante offerte sono state trovate
+        $session->setFlashdata('info', 'Trovate ' . count($offerteFornitore) . ' offerte totali');
+        
+        // Ottieni le condizioni di pagamento
+        $condizioniPagamento = $this->condizioniPagamentoModel->getCondizioni();
+        
+        $data = [
+            'title' => 'Nuovo Ordine di Acquisto',
+            'fornitori' => $this->anagraficaModel->where('fornitore', 1)->where('attivo', 1)->findAll(),
+            'progetti' => $this->progettoModel->where('attivo', 1)->findAll(),
+            'offerteFornitore' => $offerteFornitore,
+            'condizioniPagamento' => $condizioniPagamento
+        ];
+        
+        return view('ordini_materiale/create', $data);
     }
 }

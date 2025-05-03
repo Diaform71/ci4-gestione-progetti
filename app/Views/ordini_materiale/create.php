@@ -149,10 +149,17 @@
                             
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label for="condizioni_pagamento">Condizioni di Pagamento:</label>
-                                <input type="text" class="form-control <?= session('errors.condizioni_pagamento') ? 'is-invalid' : '' ?>" id="condizioni_pagamento" name="condizioni_pagamento" placeholder="Es: 30gg fine mese" value="<?= old('condizioni_pagamento') ?>">
-                                <?php if (session('errors.condizioni_pagamento')): ?>
-                                    <div class="invalid-feedback"><?= session('errors.condizioni_pagamento') ?></div>
+                                <label for="id_condizione_pagamento">Condizioni di Pagamento:</label>
+                                <select name="id_condizione_pagamento" id="id_condizione_pagamento" class="form-control select2 <?= session('errors.id_condizione_pagamento') ? 'is-invalid' : '' ?>">
+                                    <option value="">- Seleziona Condizione -</option>
+                                    <?php foreach ($condizioniPagamento as $cp): ?>
+                                        <option value="<?= $cp['id'] ?>" <?= old('id_condizione_pagamento') == $cp['id'] ? 'selected' : '' ?>>
+                                            <?= esc($cp['nome']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <?php if (session('errors.id_condizione_pagamento')): ?>
+                                    <div class="invalid-feedback d-block"><?= session('errors.id_condizione_pagamento') ?></div>
                                 <?php endif; ?>
                             </div>
                             <div class="form-group col-md-6">

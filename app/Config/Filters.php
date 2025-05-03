@@ -76,15 +76,13 @@ class Filters extends BaseFilters
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
-            // Rimuovo il filtro install dalla configurazione globale
-            // Riattivo il filtro di installazione con le esclusioni corrette
             'install' => [
                 'before' => ['*'],
                 'except' => ['install', 'install/*', 'assets/*', 'dist/*', 'plugins/*', 'test', 'check-installation']
             ],
         ],
         'after' => [
-            'toolbar',
+            // 'toolbar',
             // 'honeypot',
             // 'secureheaders',
         ],

@@ -11,42 +11,62 @@
 <?= $this->section('content') ?>
 <div class="container-fluid">
     
-    <!-- Info boxes -->
+    <!-- Small Box -->
     <div class="row">
         <div class="col-12 col-sm-6 col-md-3">
-            <div class="info-box">
-                <span class="info-box-icon bg-info elevation-1"><i class="fas fa-project-diagram"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Progetti</span>
-                    <span class="info-box-number"><?= count($progetti) ?></span>
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3><?= count($progetti) ?></h3>
+                    <p>Progetti</p>
                 </div>
+                <div class="icon">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <a href="<?= base_url('progetti') ?>" class="small-box-footer">
+                    Mostra tutti <i class="fas fa-arrow-circle-right"></i>
+                </a>
             </div>
         </div>
         <div class="col-12 col-sm-6 col-md-3">
-            <div class="info-box">
-                <span class="info-box-icon bg-success elevation-1"><i class="fas fa-tasks"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Attività</span>
-                    <span class="info-box-number"><?= count($attivita) ?></span>
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3><?= count($attivita) ?></h3>
+                    <p>Attività</p>
                 </div>
+                <div class="icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <a href="<?= base_url('attivita') ?>" class="small-box-footer">
+                    Mostra tutte <i class="fas fa-arrow-circle-right"></i>
+                </a>
             </div>
         </div>
         <div class="col-12 col-sm-6 col-md-3">
-            <div class="info-box">
-                <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-calendar-alt"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Scadenze</span>
-                    <span class="info-box-number"><?= count($scadenze) ?></span>
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3><?= count($scadenze) ?></h3>
+                    <p>Scadenze</p>
                 </div>
+                <div class="icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <a href="<?= base_url('scadenze') ?>" class="small-box-footer">
+                    Mostra tutte <i class="fas fa-arrow-circle-right"></i>
+                </a>
             </div>
         </div>
         <div class="col-12 col-sm-6 col-md-3">
-            <div class="info-box">
-                <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-file-invoice"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Richieste d'offerta</span>
-                    <span class="info-box-number"><?= count($richiesteOfferta) ?></span>
+            <div class="small-box bg-danger">
+                <div class="inner">
+                    <h3><?= count($richiesteOfferta) ?></h3>
+                    <p>Richieste d'offerta</p>
                 </div>
+                <div class="icon">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+                <a href="<?= base_url('richieste-offerta') ?>" class="small-box-footer">
+                    Mostra tutte <i class="fas fa-arrow-circle-right"></i>
+                </a>
             </div>
         </div>
     </div>

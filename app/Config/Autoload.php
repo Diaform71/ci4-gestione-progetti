@@ -94,6 +94,6 @@ class Autoload extends AutoloadConfig
         'form',
         'html',
         'progetto',
-        'date'
+        'date',
     ];
 }

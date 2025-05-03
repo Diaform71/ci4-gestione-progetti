@@ -202,6 +202,15 @@
                                 </li>
                             </ul>
                         </li>
+                        
+                        <!-- Materiali -->
+                        <li class="nav-item">
+                            <a href="<?= base_url('materiali') ?>" class="nav-link">
+                                <i class="nav-icon fas fa-boxes"></i>
+                                <p>Materiali</p>
+                            </a>
+                        </li>
+                        
                         <li class="nav-item has-treeview">
                             <a href="#" class="nav-link">
                                 <i class="nav-icon fas fa-cogs"></i>
@@ -226,48 +235,53 @@
                             </ul>
                         </li>
 
-                        <!-- Materiali -->
-                        <li class="nav-item">
-                            <a href="<?= base_url('materiali') ?>" class="nav-link">
-                                <i class="nav-icon fas fa-boxes"></i>
-                                <p>Materiali</p>
-                            </a>
-                        </li>
-                        
-                        <!-- Gestione Utenti (solo admin) -->
+                        <!-- Sezione Amministrazione (solo admin) -->
                         <?php if (session()->has('is_admin') && session('is_admin')): ?>
                         <li class="nav-item has-treeview">
                             <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-users"></i>
+                                <i class="nav-icon fas fa-shield-alt"></i>
                                 <p>
-                                    Gestione Utenti
+                                    Amministrazione
                                     <i class="fas fa-angle-left right"></i>
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="<?= base_url('utenti') ?>" class="nav-link">
+                                    <a href="<?= base_url('condizioni-pagamento') ?>" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
-                                        <p>Lista Utenti</p>
+                                        <p>Condizioni Pagamento</p>
                                     </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a href="<?= base_url('utenti/new') ?>" class="nav-link">
+                                <li class="nav-item has-treeview">
+                                    <a href="#" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
-                                        <p>Nuovo Utente</p>
+                                        <p>
+                                            Gestione Utenti
+                                            <i class="fas fa-angle-left right"></i>
+                                        </p>
+                                    </a>
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item">
+                                            <a href="<?= base_url('utenti') ?>" class="nav-link">
+                                                <i class="far fa-dot-circle nav-icon"></i>
+                                                <p>Lista Utenti</p>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a href="<?= base_url('utenti/new') ?>" class="nav-link">
+                                                <i class="far fa-dot-circle nav-icon"></i>
+                                                <p>Nuovo Utente</p>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="<?= base_url('email-templates') ?>" class="nav-link">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Template Email</p>
                                     </a>
                                 </li>
                             </ul>
-                        </li>
-                        <?php endif; ?>
-                        
-                        <!-- Template Email (solo admin) -->
-                        <?php if (session()->has('is_admin') && session('is_admin')): ?>
-                        <li class="nav-item">
-                            <a href="<?= base_url('email-templates') ?>" class="nav-link">
-                                <i class="nav-icon fas fa-envelope-open-text"></i>
-                                <p>Template Email</p>
-                            </a>
                         </li>
                         <?php endif; ?>
 

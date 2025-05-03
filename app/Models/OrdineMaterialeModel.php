@@ -18,7 +18,7 @@ final class OrdineMaterialeModel extends Model
         'numero', 'data', 'oggetto', 'descrizione', 'id_anagrafica', 
         'id_referente', 'id_progetto', 'stato', 'id_utente_creatore',
         'data_invio', 'data_accettazione', 'data_consegna_prevista', 'data_consegna_effettiva',
-        'note', 'condizioni_pagamento', 'condizioni_consegna', 'id_offerta_fornitore',
+        'note', 'condizioni_pagamento', 'id_condizione_pagamento', 'condizioni_consegna', 'id_offerta_fornitore',
         'importo_totale', 'sconto_totale', 'sconto_fisso', 'costo_trasporto', 'valuta'
     ];
 

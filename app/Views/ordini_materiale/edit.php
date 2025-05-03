@@ -118,8 +118,14 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="condizioni_pagamento">Condizioni di Pagamento</label>
-                            <input type="text" class="form-control" id="condizioni_pagamento" name="condizioni_pagamento" 
-                                   value="<?= old('condizioni_pagamento', $ordine['condizioni_pagamento']) ?>">
+                            <select class="form-control select2" id="condizioni_pagamento" name="condizioni_pagamento">
+                                <option value="">Seleziona condizioni...</option>
+                                <option value="Bonifico 30gg" <?= (old('condizioni_pagamento', $ordine['condizioni_pagamento']) == 'Bonifico 30gg') ? 'selected' : '' ?>>Bonifico 30gg</option>
+                                <option value="Bonifico 60gg" <?= (old('condizioni_pagamento', $ordine['condizioni_pagamento']) == 'Bonifico 60gg') ? 'selected' : '' ?>>Bonifico 60gg</option>
+                                <option value="Bonifico 90gg" <?= (old('condizioni_pagamento', $ordine['condizioni_pagamento']) == 'Bonifico 90gg') ? 'selected' : '' ?>>Bonifico 90gg</option>
+                                <option value="Rimessa diretta" <?= (old('condizioni_pagamento', $ordine['condizioni_pagamento']) == 'Rimessa diretta') ? 'selected' : '' ?>>Rimessa diretta</option>
+                                <option value="Pagamento anticipato" <?= (old('condizioni_pagamento', $ordine['condizioni_pagamento']) == 'Pagamento anticipato') ? 'selected' : '' ?>>Pagamento anticipato</option>
+                            </select>
                         </div>
                     </div>
                     <div class="col-md-6">
