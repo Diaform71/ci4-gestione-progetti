@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="<?= base_url('/plugins/fontawesome-free/css/all.min.css') ?>">
 
     <!-- AdminLTE CSS -->
-    <link rel="stylesheet" href="<?= base_url('/dist/css/adminlte.min.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('/adminlte/css/adminlte.min.css') ?>">
 
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="<?= base_url('/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') ?>">
@@ -124,7 +124,7 @@
     <!-- Bootstrap Bundle with Popper -->
     <script src="<?= base_url('/plugins/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
     <!-- AdminLTE App -->
-    <script src="<?= base_url('/dist/js/adminlte.min.js') ?>"></script>
+    <script src="<?= base_url('/adminlte/js/adminlte.min.js') ?>"></script>
     <!-- SweetAlert2 -->
     <script src="<?= base_url('/plugins/sweetalert2/sweetalert2.min.js') ?>"></script>
 

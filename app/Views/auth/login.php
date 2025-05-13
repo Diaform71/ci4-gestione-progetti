@@ -11,7 +11,7 @@
     <!-- icheck bootstrap -->
     <link rel="stylesheet" href="<?= base_url('/plugins/icheck-bootstrap/icheck-bootstrap.min.css') ?>">
     <!-- Theme style -->
-    <link rel="stylesheet" href="<?= base_url('/dist/css/adminlte.min.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('/adminlte/css/adminlte.min.css') ?>">
     <style>
         .install-box {
             max-width: 450px;
@@ -115,6 +115,6 @@
     <!-- Bootstrap 4 -->
     <script src="<?= base_url('/plugins/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
     <!-- AdminLTE App -->
-    <script src="<?= base_url('/dist/js/adminlte.min.js') ?>"></script>
+    <script src="<?= base_url('/adminlte/js/adminlte.min.js') ?>"></script>
 </body>
 </html> 
