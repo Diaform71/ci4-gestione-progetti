@@ -1089,6 +1089,9 @@ final class ProgettiController extends BaseController
             return redirect()->to("progetti/{$idProgetto}")->with('error', 'Dettagli materiale non trovati');
         }
 
+        // Sanitizza il codice del materiale per evitare problemi di lettura con il barcode
+        $codiceSanitizzato = $this->sanitizzaCodicePerBarcode($materiale['codice']);
+
         // Carichiamo TCPDF
         $tcpdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, array(80, 50), true, 'UTF-8', false);
         
@@ -1126,7 +1129,7 @@ final class ProgettiController extends BaseController
         );
         
         // Codice univoco per l'associazione (formato: P{id_progetto}-M{id_materiale})
-        $codiceAssociazione = "P{$idProgetto}-M{$associazione['id_materiale']}";
+        $codiceAssociazione = "P{$idProgetto}M{$associazione['id_materiale']}";
         
         // Nome progetto in alto
         $tcpdf->SetFont('helvetica', 'B', 9);
@@ -1155,8 +1158,15 @@ final class ProgettiController extends BaseController
             $tcpdf->Ln(1);
         }
         
+        // Codice originale e codice sanitizzato per il barcode (se diversi)
+        if ($materiale['codice'] !== $codiceSanitizzato) {
+            $tcpdf->SetFont('helvetica', '', 6);
+            $tcpdf->Cell(0, 0, "Codice barcode: " . $codiceSanitizzato, 0, 1, 'L');
+            $tcpdf->Ln(1);
+        }
+        
         // Genera il codice a barre (Code 128)
-        $tcpdf->write1DBarcode($codiceAssociazione, 'C128', '', '', '', 10, 0.4, $style, 'N');
+        $tcpdf->write1DBarcode($codiceSanitizzato, 'C128', '', '', '', 10, 0.4, $style, 'N');
         
         // Aggiungi ID associazione in piccolo sotto al barcode
         $tcpdf->Ln(10);
@@ -1284,6 +1294,9 @@ final class ProgettiController extends BaseController
                 continue; // Salta questo materiale e passa al prossimo
             }
             
+            // Sanitizza il codice del materiale per evitare problemi di lettura con il barcode
+            $codiceSanitizzato = $this->sanitizzaCodicePerBarcode($materiale['codice']);
+            
             // Calcola la posizione di questa etichetta nella griglia
             $row = floor($currentEtichetta / $etichettesPerRow);
             $col = $currentEtichetta % $etichettesPerRow;
@@ -1306,7 +1319,6 @@ final class ProgettiController extends BaseController
             }
             
             // Prepara i contenuti dell'etichetta
-            $codiceAssociazione = "P{$idProgetto}-M{$associazione['id_materiale']}";
             
             // Salva la posizione corrente
             $tcpdf->setXY($x, $y);
@@ -1324,10 +1336,16 @@ final class ProgettiController extends BaseController
             $tcpdf->SetFont('helvetica', '', 7);
             $tcpdf->Cell($etichettaWidth, 4, "Q.tà: {$associazione['quantita']} {$associazione['unita_misura']}", 0, 2, 'C');
             
+            // Codice originale e codice sanitizzato per il barcode (se diversi)
+            if ($materiale['codice'] !== $codiceSanitizzato) {
+                $tcpdf->SetFont('helvetica', '', 6);
+                $tcpdf->Cell($etichettaWidth, 3, "Codice barcode: " . $codiceSanitizzato, 0, 2, 'C');
+            }
+            
             // Genera il codice a barre
             $barcodeY = $y + 15; // Posiziona il codice a barre a circa metà dell'etichetta
             $tcpdf->write1DBarcode(
-                $codiceAssociazione, 
+                $codiceSanitizzato, 
                 'C128', 
                 $x + 2, // Piccolo margine interno
                 $barcodeY,
@@ -1354,5 +1372,36 @@ final class ProgettiController extends BaseController
         $pdfContent = $tcpdf->Output($filename, 'S'); // 'S' per ottenere il contenuto come stringa
         
         return $response->setBody($pdfContent);
+    }
+
+    /**
+     * Sanitizza un codice per renderlo compatibile con i lettori di codici a barre
+     * sostituendo i caratteri problematici
+     * 
+     * @param string $codice Il codice originale
+     * @return string Il codice sanitizzato
+     */
+    private function sanitizzaCodicePerBarcode($codice) 
+    {
+        // Mappatura dei caratteri problematici
+        $caratteriProblematici = [
+            '/' => '-', // Sostituisci la barra con un trattino
+            '\'' => '', // Rimuovi gli apici singoli
+            '\\' => '', // Rimuovi i backslash
+            '"' => '', // Rimuovi gli apici doppi
+            '?' => '', // Rimuovi i punti interrogativi
+            '*' => 'x', // Sostituisci gli asterischi con una x
+            '#' => 'n', // Sostituisci il cancelletto con n
+            '&' => 'e', // Sostituisci & con e
+        ];
+        
+        // Applica le sostituzioni
+        $codiceSanitizzato = str_replace(
+            array_keys($caratteriProblematici), 
+            array_values($caratteriProblematici), 
+            $codice
+        );
+        
+        return $codiceSanitizzato;
     }
 } 

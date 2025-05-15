@@ -78,6 +78,7 @@ $routes->group('materiali', ['filter' => 'auth'], function ($routes) {
     $routes->get('edit/(:num)', 'Materiali::edit/$1');
     $routes->post('update/(:num)', 'Materiali::update/$1');
     $routes->get('delete/(:num)', 'Materiali::delete/$1');
+    $routes->post('delete/(:num)', 'Materiali::delete/$1');
     $routes->get('search', 'Materiali::search');
     $routes->get('barcode/(:num)', 'Materiali::barcode/$1');
 });
