@@ -706,7 +706,7 @@ final class ProgettiController extends BaseController
     }
 
     /**
-     * Aggiorna un materiale nel progetto
+     * Aggiorna un materiale associato a un progetto
      */
     public function aggiornaMateriale($id_progetto)
     {
@@ -737,28 +737,57 @@ final class ProgettiController extends BaseController
             return redirect()->back()->with('error', 'Dati non validi. Verifica i campi e riprova.');
         }
 
-        $id = $this->request->getPost('id');
+        $id = (int)$this->request->getPost('id');
+        $id_materiale = (int)$this->request->getPost('id_materiale');
         $quantita = $this->request->getPost('quantita');
         $unita_misura = $this->request->getPost('unita_misura') ?: 'pz';
         $note = $this->request->getPost('note');
 
+        // Log dei dati ricevuti
+        log_message('debug', 'Dati modifica materiale - ID associazione: ' . $id . ' - ID materiale: ' . $id_materiale . ' - ID Progetto: ' . $id_progetto);
+        log_message('debug', 'POST data: ' . json_encode($this->request->getPost()));
+        
         // Verifica che il record esista
         $progettoMaterialeModel = new \App\Models\ProgettoMaterialeModel();
-        $record = $progettoMaterialeModel->find($id);
-        if (empty($record) || $record['id_progetto'] != $id_progetto) {
-            return redirect()->back()->with('error', 'Record non trovato');
+        
+        // Cerca prima per ID associazione
+        $record = $progettoMaterialeModel->withDeleted()->find($id);
+        
+        if (empty($record)) {
+            log_message('debug', 'Record non trovato con ID: ' . $id);
+            
+            // Prova a cercare un record che abbia l'id_materiale e id_progetto specificati
+            $recordAlt = $progettoMaterialeModel->withDeleted()
+                ->where('id_materiale', $id_materiale)
+                ->where('id_progetto', $id_progetto)
+                ->first();
+            
+            if ($recordAlt) {
+                log_message('debug', 'Trovato record alternativo con ID: ' . $recordAlt['id'] . ', usando questo record');
+                $record = $recordAlt;
+                $id = $recordAlt['id']; // Aggiorna l'ID per utilizzarlo nell'update
+            } else {
+                log_message('debug', 'Nessun record trovato nemmeno con filtri alternativi');
+                return redirect()->back()->with('error', 'Record non trovato');
+            }
+        } else if ($record['id_progetto'] != $id_progetto) {
+            log_message('debug', 'Record trovato ma id_progetto non corrisponde: ' . $record['id_progetto'] . ' vs ' . $id_progetto);
+            return redirect()->back()->with('error', 'Record non autorizzato');
         }
 
         // Aggiorna il record
         $data = [
             'quantita' => $quantita,
             'unita_misura' => $unita_misura,
-            'note' => $note
+            'note' => $note,
+            'deleted_at' => null // Ripristina il record se era stato eliminato
         ];
 
         if ($progettoMaterialeModel->update($id, $data)) {
+            log_message('debug', 'Materiale aggiornato con successo: ID ' . $id);
             return redirect()->to("progetti/{$id_progetto}")->with('success', 'Materiale aggiornato con successo');
         } else {
+            log_message('error', 'Errore durante l\'aggiornamento del materiale: ' . json_encode($progettoMaterialeModel->errors()));
             return redirect()->back()->with('error', 'Si è verificato un errore durante l\'aggiornamento del materiale');
         }
     }
@@ -784,8 +813,9 @@ final class ProgettiController extends BaseController
 
         // Verifica che il record esista
         $progettoMaterialeModel = new \App\Models\ProgettoMaterialeModel();
-        $record = $progettoMaterialeModel->find($id_record);
+        $record = $progettoMaterialeModel->withDeleted()->find($id_record);
         if (empty($record) || $record['id_progetto'] != $id_progetto) {
+            log_message('debug', 'Errore rimozione materiale - ID: ' . $id_record . ' - ID Progetto: ' . $id_progetto);
             return redirect()->back()->with('error', 'Record non trovato');
         }
 
@@ -1092,100 +1122,130 @@ final class ProgettiController extends BaseController
         // Sanitizza il codice del materiale per evitare problemi di lettura con il barcode
         $codiceSanitizzato = $this->sanitizzaCodicePerBarcode($materiale['codice']);
 
-        // Carichiamo TCPDF
-        $tcpdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, array(80, 50), true, 'UTF-8', false);
-        
-        // Configurazione base del documento
-        $tcpdf->SetCreator('Gestione Progetti');
-        $tcpdf->SetAuthor('Sistema');
-        $tcpdf->SetTitle('Etichetta Materiale - Progetto ' . $progetto['nome']);
-        
-        // Rimuovi header e footer
-        $tcpdf->setPrintHeader(false);
-        $tcpdf->setPrintFooter(false);
-        
-        // Imposta margini
-        $tcpdf->SetMargins(5, 5, 5);
-        
-        // Aggiungi pagina
-        $tcpdf->AddPage();
-        
-        // Genera il codice a barre
-        $style = array(
-            'position' => '',
-            'align' => 'C',
-            'stretch' => false,
-            'fitwidth' => true,
-            'cellfitalign' => '',
-            'border' => false,
-            'hpadding' => 'auto',
-            'vpadding' => 'auto',
-            'fgcolor' => array(0, 0, 0),
-            'bgcolor' => false,
-            'text' => true,
-            'font' => 'helvetica',
-            'fontsize' => 8,
-            'stretchtext' => 4
-        );
-        
-        // Codice univoco per l'associazione (formato: P{id_progetto}-M{id_materiale})
-        $codiceAssociazione = "P{$idProgetto}M{$associazione['id_materiale']}";
-        
-        // Nome progetto in alto
-        $tcpdf->SetFont('helvetica', 'B', 9);
-        $tcpdf->Cell(0, 0, "Progetto: " . mb_substr($progetto['nome'], 0, 30), 0, 1, 'C');
-        $tcpdf->Ln(1);
-        
-        // Codice e descrizione materiale (troncati se troppo lunghi)
-        $tcpdf->SetFont('helvetica', 'B', 8);
-        $tcpdf->Cell(0, 0, "Cod: " . $materiale['codice'], 0, 1, 'L');
-        $tcpdf->Ln(1);
-        
-        $tcpdf->SetFont('helvetica', '', 7);
-        $descrizione = character_limiter($materiale['descrizione'], 50);
-        $tcpdf->Cell(0, 0, $descrizione, 0, 1, 'L');
-        $tcpdf->Ln(1);
-        
-        // Quantità e unità di misura
-        $tcpdf->SetFont('helvetica', '', 8);
-        $tcpdf->Cell(0, 0, "Q.tà: {$associazione['quantita']} {$associazione['unita_misura']}", 0, 1, 'L');
-        $tcpdf->Ln(1);
-        
-        // Aggiungi dettagli produttore se disponibile
-        if (!empty($materiale['produttore'])) {
-            $tcpdf->SetFont('helvetica', 'I', 6);
-            $tcpdf->Cell(0, 0, "Prod: " . $materiale['produttore'], 0, 1, 'L');
+        // Debug - Log dei valori per diagnostica
+        log_message('debug', 'Generazione barcode - ID Progetto: ' . $idProgetto);
+        log_message('debug', 'Generazione barcode - ID Materiale: ' . $idMateriale);
+        log_message('debug', 'Generazione barcode - Codice originale: ' . $materiale['codice']);
+        log_message('debug', 'Generazione barcode - Codice sanitizzato: ' . $codiceSanitizzato);
+
+        try {
+            // Carica il file di configurazione TCPDF
+            require_once(APPPATH . 'ThirdParty/TCPDF-main/config/tcpdf_config.php');
+            
+            // Definisci una directory temporanea specifica per TCPDF
+            $tempDir = WRITEPATH . 'temp/tcpdf';
+            if (!is_dir($tempDir)) {
+                mkdir($tempDir, 0777, true);
+            }
+            if (!defined('K_PATH_CACHE')) {
+                define('K_PATH_CACHE', $tempDir . '/');
+            }
+            
+            // Carichiamo TCPDF
+            $tcpdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, array(80, 50), true, 'UTF-8', false);
+            
+            // Configurazione base del documento
+            $tcpdf->SetCreator('Gestione Progetti');
+            $tcpdf->SetAuthor('Sistema');
+            $tcpdf->SetTitle('Etichetta Materiale - Progetto ' . $progetto['nome']);
+            
+            // Rimuovi header e footer
+            $tcpdf->setPrintHeader(false);
+            $tcpdf->setPrintFooter(false);
+            
+            // Imposta margini
+            $tcpdf->SetMargins(5, 5, 5);
+            
+            // Aggiungi pagina
+            $tcpdf->AddPage();
+            
+            // Genera il codice a barre
+            $style = array(
+                'position' => '',
+                'align' => 'C',
+                'stretch' => false,
+                'fitwidth' => true,
+                'cellfitalign' => '',
+                'border' => false,
+                'hpadding' => 'auto',
+                'vpadding' => 'auto',
+                'fgcolor' => array(0, 0, 0),
+                'bgcolor' => false,
+                'text' => true,
+                'font' => 'helvetica',
+                'fontsize' => 8,
+                'stretchtext' => 4
+            );
+            
+            // Codice univoco per l'associazione (formato: P{id_progetto}-M{id_materiale})
+            $codiceAssociazione = "P{$idProgetto}M{$associazione['id_materiale']}";
+            
+            // Nome progetto in alto
+            $tcpdf->SetFont('helvetica', 'B', 9);
+            $tcpdf->Cell(0, 0, "Progetto: " . mb_substr($progetto['nome'], 0, 30), 0, 1, 'C');
             $tcpdf->Ln(1);
-        }
-        
-        // Codice originale e codice sanitizzato per il barcode (se diversi)
-        if ($materiale['codice'] !== $codiceSanitizzato) {
+            
+            // Codice e descrizione materiale (troncati se troppo lunghi)
+            $tcpdf->SetFont('helvetica', 'B', 8);
+            $tcpdf->Cell(0, 0, "Cod: " . $materiale['codice'], 0, 1, 'L');
+            $tcpdf->Ln(1);
+            
+            $tcpdf->SetFont('helvetica', '', 7);
+            $descrizione = character_limiter($materiale['descrizione'], 50);
+            $tcpdf->Cell(0, 0, $descrizione, 0, 1, 'L');
+            $tcpdf->Ln(1);
+            
+            // Quantità e unità di misura
+            $tcpdf->SetFont('helvetica', '', 8);
+            $tcpdf->Cell(0, 0, "Q.tà: {$associazione['quantita']} {$associazione['unita_misura']}", 0, 1, 'L');
+            $tcpdf->Ln(1);
+            
+            // Aggiungi dettagli produttore se disponibile
+            if (!empty($materiale['produttore'])) {
+                $tcpdf->SetFont('helvetica', 'I', 6);
+                $tcpdf->Cell(0, 0, "Prod: " . $materiale['produttore'], 0, 1, 'L');
+                $tcpdf->Ln(1);
+            }
+            
+            // Codice originale e codice sanitizzato per il barcode (se diversi)
+            if ($materiale['codice'] !== $codiceSanitizzato) {
+                $tcpdf->SetFont('helvetica', '', 6);
+                $tcpdf->Cell(0, 0, "Codice barcode: " . $codiceSanitizzato, 0, 1, 'L');
+            }
+            
+            // Genera il codice a barre (Code 128)
+            try {
+                $tcpdf->write1DBarcode($codiceSanitizzato, 'C128', '', '', '', 10, 0.4, $style, 'N');
+                log_message('debug', 'Generazione barcode completata con successo');
+            } catch (\Exception $e) {
+                log_message('error', 'Errore nella generazione del barcode: ' . $e->getMessage());
+            }
+            
+            // Aggiungi ID associazione in piccolo sotto al barcode
+            $tcpdf->Ln(10);
             $tcpdf->SetFont('helvetica', '', 6);
-            $tcpdf->Cell(0, 0, "Codice barcode: " . $codiceSanitizzato, 0, 1, 'L');
-            $tcpdf->Ln(1);
+            $tcpdf->Cell(0, 0, "ID: {$idMateriale}", 0, 1, 'C');
+            
+            // Output del PDF
+            $filename = "etichetta_P{$idProgetto}_M{$associazione['id_materiale']}.pdf";
+            
+            // Imposta gli header corretti per il download del PDF
+            $response = service('response');
+            $response->setHeader('Content-Type', 'application/pdf');
+            $response->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            $response->setHeader('Cache-Control', 'max-age=0');
+            
+            // Genera il PDF e lo invia direttamente al browser
+            $pdfContent = $tcpdf->Output($filename, 'S'); // 'S' per ottenere il contenuto come stringa
+            
+            return $response->setBody($pdfContent);
+        } catch (\Exception $e) {
+            // Log dell'errore
+            log_message('error', 'Errore generazione barcode: ' . $e->getMessage());
+            
+            // Reindirizza con messaggio di errore
+            return redirect()->to("progetti/{$idProgetto}")->with('error', 'Errore nella generazione del barcode: ' . $e->getMessage());
         }
-        
-        // Genera il codice a barre (Code 128)
-        $tcpdf->write1DBarcode($codiceSanitizzato, 'C128', '', '', '', 10, 0.4, $style, 'N');
-        
-        // Aggiungi ID associazione in piccolo sotto al barcode
-        $tcpdf->Ln(10);
-        $tcpdf->SetFont('helvetica', '', 6);
-        $tcpdf->Cell(0, 0, "ID: {$idMateriale}", 0, 1, 'C');
-        
-        // Output del PDF
-        $filename = "etichetta_P{$idProgetto}_M{$associazione['id_materiale']}.pdf";
-        
-        // Imposta gli header corretti per il download del PDF
-        $response = service('response');
-        $response->setHeader('Content-Type', 'application/pdf');
-        $response->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
-        $response->setHeader('Cache-Control', 'max-age=0');
-        
-        // Genera il PDF e lo invia direttamente al browser
-        $pdfContent = $tcpdf->Output($filename, 'S'); // 'S' per ottenere il contenuto come stringa
-        
-        return $response->setBody($pdfContent);
     }
 
     /**
@@ -1234,6 +1294,17 @@ final class ProgettiController extends BaseController
         $etichettesPerPage = $etichettesPerRow * $rowsPerPage;
 
         // Carichiamo TCPDF
+        require_once(APPPATH . 'ThirdParty/TCPDF-main/config/tcpdf_config.php');
+        
+        // Definisci una directory temporanea specifica per TCPDF
+        $tempDir = WRITEPATH . 'temp/tcpdf';
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0777, true);
+        }
+        if (!defined('K_PATH_CACHE')) {
+            define('K_PATH_CACHE', $tempDir . '/');
+        }
+        
         $tcpdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
         
         // Configurazione base del documento

@@ -31,8 +31,22 @@ class ProgettoMaterialeModel extends Model
      */
     public function getMaterialiByProgetto(int $id_progetto): array
     {
-        return $this->select('progetti_materiali.*, 
-                               materiali.*')
+        return $this->select('progetti_materiali.id as id, 
+                               progetti_materiali.id_progetto, 
+                               progetti_materiali.id_materiale, 
+                               progetti_materiali.quantita, 
+                               progetti_materiali.unita_misura, 
+                               progetti_materiali.note, 
+                               progetti_materiali.created_at, 
+                               progetti_materiali.updated_at,
+                               materiali.id as id_materiale_originale, 
+                               materiali.codice, 
+                               materiali.descrizione, 
+                               materiali.produttore,
+                               materiali.commerciale,
+                               materiali.meccanica,
+                               materiali.elettrica,
+                               materiali.pneumatica')
                     ->join('materiali', 'materiali.id = progetti_materiali.id_materiale')
                     ->where('progetti_materiali.id_progetto', $id_progetto)
                     ->where('progetti_materiali.deleted_at IS NULL')

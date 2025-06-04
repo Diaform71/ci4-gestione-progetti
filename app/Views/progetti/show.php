@@ -1116,6 +1116,13 @@
                     <?= csrf_field() ?>
                     <input type="hidden" id="editIdMateriale" name="id_materiale">
                     <input type="hidden" id="editId" name="id">
+                    <!-- Aggiungiamo campo di debug -->
+                    <div class="card mb-2 bg-light">
+                        <div class="card-body p-2">
+                            <small><strong>ID associazione:</strong> <span id="debugAssocId"></span></small><br>
+                            <small><strong>ID materiale:</strong> <span id="debugMatId"></span></small>
+                        </div>
+                    </div>
 
                     <div class="form-group">
                         <label for="editQuantita">Quantità:</label>
@@ -1833,13 +1840,31 @@
             const unitaMisura = $(this).data('unita-misura');
             const note = $(this).data('note');
 
-            $('#editId').val(id);
-            $('#editIdMateriale').val(idMateriale);
+            console.log('Modifica materiale', {
+                id: id,
+                idMateriale: idMateriale,
+                quantita: quantita,
+                unitaMisura: unitaMisura
+            });
+
+            // Importante: qui si scambiano gli ID - correggiamo il problema
+            $('#editId').val(id); // Questo è l'ID dell'associazione (record nella tabella progetti_materiali)
+            $('#editIdMateriale').val(idMateriale); // Questo è l'ID del materiale (record nella tabella materiali)
             $('#editQuantita').val(quantita);
             $('#editUnitaMisura').val(unitaMisura);
             $('#editNote').val(note);
+            
+            // Aggiornamento campi di debug
+            $('#debugAssocId').text(id);
+            $('#debugMatId').text(idMateriale);
 
             $('#modalModificaMateriale').modal('show');
+            
+            // Debug: stampa i valori dei campi dopo averli impostati
+            console.log('Valori dei campi del form', {
+                editId: $('#editId').val(),
+                editIdMateriale: $('#editIdMateriale').val()
+            });
         });
 
         // Gestione eliminazione materiale
