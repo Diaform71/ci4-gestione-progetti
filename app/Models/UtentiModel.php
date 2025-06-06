@@ -183,4 +183,18 @@ class UtentiModel extends Model
         
         return $utente['ruolo'] === 'admin';
     }
+    
+    /**
+     * Ottiene la lista degli utenti attivi
+     *
+     * @return array
+     */
+    public function getActiveUtenti(): array
+    {
+        return $this->select('id, nome, cognome, username, email')
+                    ->where('attivo', 1)
+                    ->orderBy('nome', 'ASC')
+                    ->orderBy('cognome', 'ASC')
+                    ->findAll();
+    }
 }

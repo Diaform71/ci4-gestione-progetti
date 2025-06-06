@@ -212,18 +212,32 @@ final class AttivitaModel extends Model
     }
     
     /**
-     * Ottiene il conteggio delle attività per utente
-     * 
+     * Conta le attività per utente
+     *
      * @return array
      */
     public function contaAttivitaPerUtente(): array
     {
-        return $this->db->table('attivita')
-            ->select('id_utente_assegnato, COUNT(*) as totale, 
-                     SUM(CASE WHEN completata = 1 THEN 1 ELSE 0 END) as completate,
-                     SUM(CASE WHEN completata = 0 THEN 1 ELSE 0 END) as non_completate')
-            ->groupBy('id_utente_assegnato')
+        return $this->db->table('attivita a')
+            ->select('u.nome, u.cognome, COUNT(a.id) as totale_attivita')
+            ->join('utenti u', 'u.id = a.id_utente_assegnato')
+            ->groupBy('a.id_utente_assegnato')
             ->get()
             ->getResultArray();
+    }
+    
+    /**
+     * Ottiene la lista delle attività attive
+     *
+     * @return array
+     */
+    public function getActiveAttivita(): array
+    {
+        return $this->select('id, titolo, descrizione, priorita, stato')
+                    ->where('stato !=', 'completata')
+                    ->where('stato !=', 'annullata')
+                    ->orderBy('priorita', 'DESC')
+                    ->orderBy('titolo', 'ASC')
+                    ->findAll();
     }
 } 

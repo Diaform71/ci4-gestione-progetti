@@ -356,4 +356,18 @@ class Utenti extends BaseController
         
         return redirect()->to('/profilo')->with('success', 'Profilo aggiornato con successo.');
     }
+
+    /**
+     * API: Restituisce la lista degli utenti attivi in formato JSON
+     */
+    public function getUtenti()
+    {
+        $utenti = $this->utentiModel->select('id, nome, cognome, username, email')
+                                   ->where('attivo', 1)
+                                   ->orderBy('nome', 'ASC')
+                                   ->orderBy('cognome', 'ASC')
+                                   ->findAll();
+        
+        return $this->response->setJSON($utenti);
+    }
 } 

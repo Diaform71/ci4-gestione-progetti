@@ -222,7 +222,7 @@ final class AnagraficheContatti extends BaseController
     {
         try {
             $anagrafiche = $this->anagraficaModel->where('attivo', 1)
-                                                ->select('id, ragione_sociale')
+                                                ->select('id, ragione_sociale, citta')
                                                 ->orderBy('ragione_sociale', 'ASC')
                                                 ->findAll();
             

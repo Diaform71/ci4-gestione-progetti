@@ -40,6 +40,16 @@
                     <?php endif; ?>
 
                     <div class="table-responsive">
+                        <?php if (empty($contatti)): ?>
+                            <div class="text-center py-5">
+                                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">Nessun contatto disponibile</h5>
+                                <p class="text-muted">Inizia aggiungendo il tuo primo contatto.</p>
+                                <a href="<?= base_url('contatti/new') ?>" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Aggiungi Primo Contatto
+                                </a>
+                            </div>
+                        <?php else: ?>
                         <table class="table table-striped table-hover" id="table-contatti">
                             <thead>
                                 <tr>
@@ -54,44 +64,39 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php if (empty($contatti)): ?>
+                                <?php foreach ($contatti as $contatto): ?>
                                     <tr>
-                                        <td colspan="8" class="text-center">Nessun dato disponibile</td>
+                                        <td><?= $contatto['id'] ?></td>
+                                        <td><?= esc($contatto['nome']) ?></td>
+                                        <td><?= esc($contatto['cognome']) ?></td>
+                                        <td><?= esc($contatto['email']) ?></td>
+                                        <td><?= esc($contatto['telefono']) ?></td>
+                                        <td><?= esc($contatto['cellulare']) ?></td>
+                                        <td class="text-center">
+                                            <?php if ($contatto['attivo']): ?>
+                                                <span class="badge badge-success">Attivo</span>
+                                            <?php else: ?>
+                                                <span class="badge badge-danger">Inattivo</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="<?= base_url('contatti/show/' . $contatto['id']) ?>" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="<?= base_url('contatti/edit/' . $contatto['id']) ?>" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-danger btn-delete" data-id="<?= $contatto['id'] ?>" data-name="<?= esc($contatto['nome'] . ' ' . $contatto['cognome']) ?>">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
-                                <?php else: ?>
-                                    <?php foreach ($contatti as $contatto): ?>
-                                        <tr>
-                                            <td><?= $contatto['id'] ?></td>
-                                            <td><?= esc($contatto['nome']) ?></td>
-                                            <td><?= esc($contatto['cognome']) ?></td>
-                                            <td><?= esc($contatto['email']) ?></td>
-                                            <td><?= esc($contatto['telefono']) ?></td>
-                                            <td><?= esc($contatto['cellulare']) ?></td>
-                                            <td class="text-center">
-                                                <?php if ($contatto['attivo']): ?>
-                                                    <span class="badge badge-success">Attivo</span>
-                                                <?php else: ?>
-                                                    <span class="badge badge-danger">Inattivo</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <div class="btn-group">
-                                                    <a href="<?= base_url('contatti/show/' . $contatto['id']) ?>" class="btn btn-sm btn-info">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    <a href="<?= base_url('contatti/edit/' . $contatto['id']) ?>" class="btn btn-sm btn-primary">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                    <button type="button" class="btn btn-sm btn-danger btn-delete" data-id="<?= $contatto['id'] ?>" data-name="<?= esc($contatto['nome'] . ' ' . $contatto['cognome']) ?>">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                                <?php endforeach; ?>
                             </tbody>
                         </table>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -160,6 +165,7 @@
         <?php endif; ?>
         
         // Inizializzazione DataTable
+        <?php if (!empty($contatti)): ?>
         $('#table-contatti').DataTable({
             "paging": true,
             "lengthChange": true,
@@ -170,8 +176,20 @@
             "responsive": true,
             "language": {
                 "url": "<?= base_url('plugins/datatables/Italian.json') ?>"
-            }
+            },
+            "columnDefs": [
+                {
+                    "targets": [-1], // Ultima colonna (azioni)
+                    "orderable": false,
+                    "searchable": false
+                },
+                {
+                    "targets": [-2], // Penultima colonna (stato)
+                    "orderable": false
+                }
+            ]
         });
+        <?php endif; ?>
 
         // Gestione eliminazione
         $('.btn-delete').on('click', function() {

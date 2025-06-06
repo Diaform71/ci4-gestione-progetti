@@ -211,6 +211,49 @@
             </a>
         </li>
 
+        <!-- Pickup & Delivery -->
+        <li class="nav-item has-treeview">
+            <a href="#" class="nav-link">
+                <i class="nav-icon fas fa-truck"></i>
+                <p>
+                    Pickup & Delivery
+                    <i class="fas fa-angle-left right"></i>
+                </p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="<?= base_url('pickup-delivery') ?>" class="nav-link">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>Tutte le Operazioni</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?= base_url('pickup-delivery/ritiri') ?>" class="nav-link">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>Ritiri</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?= base_url('pickup-delivery/consegne') ?>" class="nav-link">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>Consegne</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?= base_url('pickup-delivery/calendario') ?>" class="nav-link">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>Calendario</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?= base_url('pickup-delivery/new') ?>" class="nav-link">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>Nuova Operazione</p>
+                    </a>
+                </li>
+            </ul>
+        </li>
+
         <li class="nav-item has-treeview">
             <a href="#" class="nav-link">
                 <i class="nav-icon fas fa-cogs"></i>

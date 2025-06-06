@@ -146,6 +146,9 @@ $routes->get('api/anagrafiche/getAnagrafiche', 'AnagraficheContatti::getAnagrafi
 $routes->get('api/contatti/getContatti', 'Contatti::getContatti');
 $routes->get('api/contatti/getActiveContatti', 'Contatti::getActiveContatti');
 
+// API Utenti
+$routes->get('api/utenti/getUtenti', 'Utenti::getUtenti');
+
 // Rotte per le attività
 $routes->group('attivita', ['filter' => 'auth'], function ($routes) {
     $routes->get('/', 'Attivita::index');
@@ -333,6 +336,26 @@ $routes->group('ordini-materiale', ['filter' => 'auth'], function ($routes) {
     $routes->post('get-contatti-by-anagrafica', 'OrdiniMaterialeController::getContattiByAnagrafica');
     $routes->post('get-ordini-by-fornitore', 'OrdiniMaterialeController::getOrdiniByFornitore');
     $routes->post('importa-voci-offerta/(:num)', 'OrdiniMaterialeController::importaVociOfferta/$1');
+});
+
+// Rotte per pickup & delivery
+$routes->group('pickup-delivery', ['filter' => 'auth'], function ($routes) {
+    $routes->get('/', 'PickupDelivery::index');
+    $routes->get('ritiri', 'PickupDelivery::ritiri');
+    $routes->get('consegne', 'PickupDelivery::consegne');
+    $routes->get('calendario', 'PickupDelivery::calendario');
+    $routes->get('new', 'PickupDelivery::new');
+    $routes->post('create', 'PickupDelivery::create');
+    $routes->get('show/(:num)', 'PickupDelivery::show/$1');
+    $routes->get('edit/(:num)', 'PickupDelivery::edit/$1');
+    $routes->post('update/(:num)', 'PickupDelivery::update/$1');
+    $routes->get('delete/(:num)', 'PickupDelivery::delete/$1');
+    $routes->get('calendario', 'PickupDelivery::calendario');
+    $routes->post('updateDate/(:num)', 'PickupDelivery::updateDate/$1');
+    $routes->post('cambiaStato/(:num)', 'PickupDelivery::cambiaStato/$1');
+    $routes->get('stampa/(:num)', 'PickupDelivery::stampa/$1');
+    $routes->get('stampa-lista', 'PickupDelivery::stampaLista');
+    $routes->get('getContatti/(:num)', 'PickupDelivery::getContatti/$1');
 });
 
 // Gestione Utenti (solo admin)
