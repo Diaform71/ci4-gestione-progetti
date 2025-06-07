@@ -1,1 +1,0 @@
-{"app_version":"1.0.0","installed_date":"2025-05-03 09:34:22"}
