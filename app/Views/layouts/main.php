@@ -64,10 +64,15 @@
                     <div class="info">
                         <?php if (session()->has('utente_logged_in')): ?>
                             <a href="<?= base_url('profilo') ?>" class="d-block">
-                                <?php if (session()->has('utente_nome') && session()->has('utente_cognome')): ?>
-                                    <?= esc(session('utente_nome')) ?> <?= esc(session('utente_cognome')) ?>
+                                <?php 
+                                $nome = trim(session('utente_nome') ?? '');
+                                $cognome = trim(session('utente_cognome') ?? '');
+                                $username = session('utente_username');
+                                
+                                if (!empty($nome) && !empty($cognome)): ?>
+                                    <?= esc($nome) ?> <?= esc($cognome) ?>
                                 <?php else: ?>
-                                    <?= esc(session('utente_username')) ?>
+                                    <?= esc($username) ?>
                                 <?php endif; ?>
                             </a>
                         <?php else: ?>

@@ -153,28 +153,45 @@
                         </div>
                     <?php endif; ?>
 
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover" id="table-pickup-delivery">
-                            <thead>
-                                <tr>
-                                    <th width="50">#</th>
-                                    <th>Titolo</th>
-                                    <th width="80">Tipo</th>
-                                    <th>Anagrafica</th>
-                                    <th>Data Programmata</th>
-                                    <th>Indirizzo</th>
-                                    <th width="80">Priorità</th>
-                                    <th width="100">Stato</th>
-                                    <th>Assegnato a</th>
-                                    <th width="120">Azioni</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (empty($operazioni)): ?>
+                    <?php if (empty($operazioni)): ?>
+                        <!-- Vista vuota elegante -->
+                        <div class="empty-state-container">
+                            <div class="empty-state-content">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-truck"></i>
+                                </div>
+                                <h4 class="empty-state-title">Nessuna operazione disponibile</h4>
+                                <p class="empty-state-description">
+                                    Inizia aggiungendo la tua prima operazione di pickup o delivery.
+                                </p>
+                                <div class="empty-state-actions">
+                                    <button type="button" class="btn btn-primary" data-toggle="offcanvas" data-target="#offcanvasNuovaOperazione">
+                                        <i class="fas fa-plus"></i> Aggiungi Prima Operazione
+                                    </button>
+                                    <a href="<?= base_url('pickup-delivery/new') ?>" class="btn btn-outline-secondary ml-2">
+                                        <i class="fas fa-external-link-alt"></i> Form Completo
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="table-pickup-delivery">
+                                <thead>
                                     <tr>
-                                        <td colspan="10" class="text-center">Nessuna operazione disponibile</td>
+                                        <th width="50">#</th>
+                                        <th>Titolo</th>
+                                        <th width="80">Tipo</th>
+                                        <th>Anagrafica</th>
+                                        <th>Data Programmata</th>
+                                        <th>Indirizzo</th>
+                                        <th width="80">Priorità</th>
+                                        <th width="100">Stato</th>
+                                        <th>Assegnato a</th>
+                                        <th width="120">Azioni</th>
                                     </tr>
-                                <?php else: ?>
+                                </thead>
+                                <tbody>
                                     <?php foreach ($operazioni as $operazione): ?>
                                         <tr>
                                             <td><?= $operazione['id'] ?></td>
@@ -266,10 +283,10 @@
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -374,6 +391,11 @@
             <div class="mb-3">
                 <label for="offcanvas_descrizione" class="form-label">Descrizione</label>
                 <textarea class="form-control" id="offcanvas_descrizione" name="descrizione" rows="3"></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="offcanvas_costo_stimato" class="form-label">Costo Stimato (€)</label>
+                <input type="number" class="form-control" id="offcanvas_costo_stimato" name="costo_stimato" step="0.01" min="0" placeholder="0.00">
             </div>
             
             <div class="mb-3">
@@ -596,6 +618,95 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
         width: 100%;
     }
 }
+
+/* Stili per riga nessun dato */
+.no-data-row td:not(:nth-child(2)) {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.no-data-row td:nth-child(2) {
+    font-weight: bold;
+    color: #495057;
+}
+
+.auto-added-cell {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Stili per vista vuota elegante */
+.empty-state-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    padding: 60px 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.empty-state-content {
+    text-align: center;
+    max-width: 500px;
+}
+
+.empty-state-icon {
+    margin-bottom: 24px;
+}
+
+.empty-state-icon i {
+    font-size: 4rem;
+    color: #6c757d;
+    opacity: 0.7;
+}
+
+.empty-state-title {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: 1.5rem;
+}
+
+.empty-state-description {
+    color: #6c757d;
+    margin-bottom: 32px;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.empty-state-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+@media (max-width: 768px) {
+    .empty-state-container {
+        min-height: 300px;
+        padding: 40px 15px;
+    }
+    
+    .empty-state-icon i {
+        font-size: 3rem;
+    }
+    
+    .empty-state-title {
+        font-size: 1.25rem;
+    }
+    
+    .empty-state-actions {
+        flex-direction: column;
+    }
+    
+    .empty-state-actions .btn {
+        width: 100%;
+        margin: 0 !important;
+    }
+}
 </style>
 <?= $this->endSection() ?>
 
@@ -606,6 +717,11 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
 <script>
     $(function() {
+        // Attendi che il DOM sia completamente caricato
+        setTimeout(function() {
+            initializeDataTable();
+        }, 100);
+        
         // Proteggi i campi datetime-local dall'interferenza dei plugin datepicker
         $('input[type="datetime-local"]').each(function() {
             $(this).addClass('no-datepicker');
@@ -622,9 +738,52 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
                 $(this).attr('placeholder', 'gg/mm/aaaa, hh:mm');
             }
         });
+    });
+
+    // Funzione per inizializzare DataTables
+    function initializeDataTable() {
+        // Verifica che la tabella esista prima di inizializzare DataTables
+        if ($('#table-pickup-delivery').length === 0) {
+            console.log('Tabella non presente - modalità vista vuota attiva');
+            return;
+        }
         
-        // Inizializzazione DataTable
-        $('#table-pickup-delivery').DataTable({
+        // Verifica che la tabella abbia righe valide
+        var $table = $('#table-pickup-delivery');
+        var headerCells = $table.find('thead tr:first th').length;
+        
+        // Se c'è solo la riga "nessun dato", rimuovila per permettere a DataTables di gestire la tabella vuota
+        var $noDataRow = $table.find('.no-data-row');
+        var $dataRows = $table.find('tbody tr:not(.no-data-row)');
+        
+        if ($noDataRow.length > 0 && $dataRows.length === 0) {
+            $noDataRow.remove();
+        }
+        
+        // Controlla che ogni riga del tbody abbia lo stesso numero di celle dell'header
+        $table.find('tbody tr').each(function(index, row) {
+            var $row = $(row);
+            var cellCount = $row.find('td').length;
+            
+            // Salta le righe speciali (come quella "nessun dato")
+            if ($row.hasClass('no-data-row')) {
+                return true; // continua al prossimo elemento
+            }
+            
+            if (cellCount !== headerCells && cellCount > 0) {
+                console.warn(`Riga ${index + 1}: numero di celle (${cellCount}) diverso dall'header (${headerCells})`);
+                
+                // Aggiungi celle mancanti se necessario
+                while ($row.find('td').length < headerCells) {
+                    $row.append('<td class="auto-added-cell">-</td>');
+                }
+            }
+        });
+        
+        // Inizializzazione DataTable con gestione errori
+        var table;
+        try {
+            table = $('#table-pickup-delivery').DataTable({
             "paging": true,
             "lengthChange": true,
             "searching": true,
@@ -632,69 +791,140 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
             "info": true,
             "autoWidth": false,
             "responsive": true,
+            "processing": true,
+            "deferRender": true,
             "order": [[4, "asc"]], // Ordina per data programmata
+            "emptyTable": "Nessuna operazione disponibile",
+            "zeroRecords": "Nessuna operazione trovata con i filtri applicati",
             "language": {
-                "url": "<?= base_url('plugins/datatables/Italian.json') ?>"
+                "processing": "Elaborazione...",
+                "search": "Cerca:",
+                "lengthMenu": "Mostra _MENU_ elementi",
+                "info": "Elementi da _START_ a _END_ di _TOTAL_ totali",
+                "infoEmpty": "Elementi da 0 a 0 di 0 totali",
+                "infoFiltered": "(filtrati da _MAX_ elementi totali)",
+                "infoPostFix": "",
+                "loadingRecords": "Caricamento...",
+                "zeroRecords": "Nessun elemento trovato",
+                "emptyTable": "Nessun dato disponibile",
+                "paginate": {
+                    "first": "Primo",
+                    "previous": "Precedente",
+                    "next": "Successivo",
+                    "last": "Ultimo"
+                },
+                "aria": {
+                    "sortAscending": ": attiva per ordinare la colonna in ordine crescente",
+                    "sortDescending": ": attiva per ordinare la colonna in ordine decrescente"
+                }
             },
             "columnDefs": [
                 {
                     "targets": [-1], // Ultima colonna (azioni)
                     "orderable": false,
                     "searchable": false
-                }
-            ]
-        });
-
-        // Gestione cambio stato
-        $('.stato-select').on('change', function() {
-            const id = $(this).data('id');
-            const nuovoStato = $(this).val();
-            const $select = $(this);
-            
-            $.ajax({
-                url: `<?= base_url('pickup-delivery/cambiaStato') ?>/${id}`,
-                method: 'POST',
-                data: {
-                    stato: nuovoStato,
-                    '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
                 },
-                success: function(response) {
-                    if (response.success) {
-                        // Mostra messaggio di successo
-                        const alert = $('<div class="alert alert-success alert-dismissible fade show">' +
-                            response.message +
-                            '<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>' +
-                            '</div>');
-                        $('.card-body').prepend(alert);
-                        
-                        // Rimuovi l'alert dopo 3 secondi
-                        setTimeout(() => {
-                            alert.alert('close');
-                        }, 3000);
-                    } else {
-                        alert('Errore: ' + response.message);
-                        // Ripristina il valore precedente
+                {
+                    "targets": [7], // Colonna stato con select
+                    "orderable": false
+                }
+            ],
+            "drawCallback": function(settings) {
+                // Reinizializza gli event handler dopo ogni ridisegno
+                initializeEventHandlers();
+            },
+            "initComplete": function(settings, json) {
+                // Inizializza gli event handler al completamento
+                initializeEventHandlers();
+            }
+        });
+        } catch (error) {
+            console.error('Errore nell\'inizializzazione di DataTables:', error);
+            
+            // Fallback: mostra la tabella senza DataTables
+            $('#table-pickup-delivery').show();
+            
+            // Inizializza comunque gli event handler
+            initializeEventHandlers();
+        }
+
+        // Funzione per inizializzare gli event handler
+        function initializeEventHandlers() {
+            // Rimuovi event handler esistenti per evitare duplicati
+            $('.stato-select').off('change.statoSelect');
+            $('.btn-delete').off('click.deleteBtn');
+            
+            // Gestione cambio stato
+            $('.stato-select').on('change.statoSelect', function() {
+                const id = $(this).data('id');
+                const nuovoStato = $(this).val();
+                const $select = $(this);
+                
+                if (!id || !nuovoStato) {
+                    console.error('ID o stato mancante');
+                    return;
+                }
+                
+                $.ajax({
+                    url: `<?= base_url('pickup-delivery/cambiaStato') ?>/${id}`,
+                    method: 'POST',
+                    data: {
+                        stato: nuovoStato,
+                        '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                    },
+                    success: function(response) {
+                        if (response && response.success) {
+                            // Mostra messaggio di successo
+                            const alert = $('<div class="alert alert-success alert-dismissible fade show">' +
+                                (response.message || 'Stato aggiornato con successo') +
+                                '<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>' +
+                                '</div>');
+                            $('.card-body').prepend(alert);
+                            
+                            // Rimuovi l'alert dopo 3 secondi
+                            setTimeout(() => {
+                                alert.alert('close');
+                            }, 3000);
+                        } else {
+                            alert('Errore: ' + (response.message || 'Errore sconosciuto'));
+                            location.reload();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Errore AJAX:', error);
+                        alert('Errore durante l\'aggiornamento dello stato');
                         location.reload();
                     }
-                },
-                error: function() {
-                    alert('Errore durante l\'aggiornamento dello stato');
-                    location.reload();
-                }
+                });
             });
-        });
 
-        // Gestione eliminazione
-        $('.btn-delete').on('click', function() {
-            const id = $(this).data('id');
-            const name = $(this).data('title');
+            // Gestione eliminazione
+            $('.btn-delete').on('click.deleteBtn', function() {
+                const id = $(this).data('id');
+                const name = $(this).data('title');
 
-            $('#delete-name').text(name);
-            $('#btn-confirm-delete').attr('href', `<?= base_url('pickup-delivery/delete') ?>/${id}`);
-            $('#deleteModal').modal('show');
-        });
+                if (!id) {
+                    console.error('ID mancante per eliminazione');
+                    return;
+                }
 
-        // === GESTIONE OFFCANVAS ===
+                $('#delete-name').text(name || 'Elemento selezionato');
+                $('#btn-confirm-delete').attr('href', `<?= base_url('pickup-delivery/delete') ?>/${id}`);
+                $('#deleteModal').modal('show');
+            });
+        }
+    }
+
+    // Variabile per tracciare se gli handler sono già stati inizializzati
+    var offcanvasHandlersInitialized = false;
+    
+    // Funzione per inizializzare gli handler dell'offcanvas
+    function initializeOffcanvasHandlers() {
+        // Evita la doppia inizializzazione
+        if (offcanvasHandlersInitialized) {
+            return;
+        }
+        offcanvasHandlersInitialized = true;
         
         // Funzione per aprire l'offcanvas
         function openOffcanvas(target) {
@@ -724,8 +954,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
             $offcanvas.find('.is-invalid').removeClass('is-invalid');
         }
         
-        // Gestione apertura offcanvas
-        $('[data-toggle="offcanvas"]').on('click', function(e) {
+        // Gestione apertura offcanvas - rimuovi handler esistenti
+        $('[data-toggle="offcanvas"]').off('click.offcanvas').on('click.offcanvas', function(e) {
             e.preventDefault();
             const target = $(this).data('target');
             const tipo = $(this).data('tipo');
@@ -741,14 +971,14 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
             loadOffcanvasData();
         });
         
-        // Gestione chiusura offcanvas
-        $('[data-dismiss="offcanvas"]').on('click', function() {
+        // Gestione chiusura offcanvas - rimuovi handler esistenti
+        $('[data-dismiss="offcanvas"]').off('click.offcanvas').on('click.offcanvas', function() {
             const target = $(this).closest('.offcanvas').attr('id');
             closeOffcanvas('#' + target);
         });
         
-        // Chiusura con ESC
-        $(document).on('keydown', function(e) {
+        // Chiusura con ESC - rimuovi handler esistenti
+        $(document).off('keydown.offcanvas').on('keydown.offcanvas', function(e) {
             if (e.key === 'Escape' && $('.offcanvas.show').length) {
                 closeOffcanvas('.offcanvas.show');
             }
@@ -805,12 +1035,17 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
             width: '100%'
         });
         
-        // Gestione submit form offcanvas
-        $('#form-nuova-operazione').on('submit', function(e) {
+        // Gestione submit form offcanvas - rimuovi handler esistenti prima di aggiungerne uno nuovo
+        $('#form-nuova-operazione').off('submit.offcanvas').on('submit.offcanvas', function(e) {
             e.preventDefault();
             
             const $form = $(this);
             const $submitBtn = $form.find('button[type="submit"]');
+            
+            // Evita submit multipli
+            if ($submitBtn.prop('disabled')) {
+                return false;
+            }
             
             // Disabilita il pulsante
             $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Salvando...');
@@ -865,6 +1100,11 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
         now.setHours(now.getHours() + 1);
         const defaultDateTime = now.toISOString().slice(0, 16);
         $('#offcanvas_data_programmata').val(defaultDateTime);
+    }
+
+    $(function() {
+        // Inizializza sempre gli handler dell'offcanvas
+        initializeOffcanvasHandlers();
     });
 
     // Funzione per mostrare il modal di stampa

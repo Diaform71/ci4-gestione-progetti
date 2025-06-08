@@ -55,8 +55,8 @@ final class PickupDeliveryModel extends Model
         'id_utente_assegnato' => '?integer',
         'id_utente_creatore' => 'integer',
         'richiesta_ddt' => 'boolean',
-        'costo_stimato' => 'float',
-        'costo_effettivo' => 'float',
+        'costo_stimato' => '?float',
+        'costo_effettivo' => '?float',
         'data_ddt' => '?date',
     ];
     

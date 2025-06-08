@@ -21,12 +21,17 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link" data-toggle="dropdown" href="#">
                         <i class="fas fa-user-circle"></i>
-                        <?php if (session()->has('utente_nome') && session()->has('utente_cognome')): ?>
+                        <?php 
+                        $nome = trim(session('utente_nome') ?? '');
+                        $cognome = trim(session('utente_cognome') ?? '');
+                        $username = session('utente_username');
+                        
+                        if (!empty($nome) && !empty($cognome)): ?>
                             <span class="d-none d-md-inline-block ml-1">
-                                <?= esc(session('utente_nome')) ?> <?= esc(session('utente_cognome')) ?>
+                                <?= esc($nome) ?> <?= esc($cognome) ?>
                             </span>
-                        <?php elseif (session()->has('utente_username')): ?>
-                            <span class="d-none d-md-inline-block ml-1"><?= esc(session('utente_username')) ?></span>
+                        <?php elseif (!empty($username)): ?>
+                            <span class="d-none d-md-inline-block ml-1"><?= esc($username) ?></span>
                         <?php else: ?>
                             <span class="d-none d-md-inline-block ml-1">Utente</span>
                         <?php endif; ?>
@@ -34,10 +39,15 @@
                     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                         <?php if (session()->has('utente_logged_in')): ?>
                             <span class="dropdown-header">
-                                <?php if (session()->has('utente_nome') && session()->has('utente_cognome')): ?>
-                                    <?= esc(session('utente_nome')) ?> <?= esc(session('utente_cognome')) ?>
+                                <?php 
+                                $nome = trim(session('utente_nome') ?? '');
+                                $cognome = trim(session('utente_cognome') ?? '');
+                                $username = session('utente_username');
+                                
+                                if (!empty($nome) && !empty($cognome)): ?>
+                                    <?= esc($nome) ?> <?= esc($cognome) ?>
                                 <?php else: ?>
-                                    <?= esc(session('utente_username')) ?>
+                                    <?= esc($username) ?>
                                 <?php endif; ?>
                             </span>
                             <div class="dropdown-divider"></div>

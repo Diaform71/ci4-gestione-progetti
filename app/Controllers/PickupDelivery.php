@@ -158,6 +158,14 @@ final class PickupDelivery extends BaseController
             }
         }
         
+        // Gestione campi numerici opzionali - imposta NULL se vuoti
+        $optionalNumericFields = ['costo_stimato', 'costo_effettivo'];
+        foreach ($optionalNumericFields as $field) {
+            if (isset($data[$field]) && (empty($data[$field]) || $data[$field] === '')) {
+                $data[$field] = null;
+            }
+        }
+        
         // Gestione checkbox
         $data['richiesta_ddt'] = $this->request->getPost('richiesta_ddt') ? 1 : 0;
         
@@ -257,6 +265,14 @@ final class PickupDelivery extends BaseController
         // Gestione foreign key opzionali - converte valori vuoti in NULL
         $optionalForeignKeys = ['id_contatto', 'id_attivita', 'id_utente_assegnato'];
         foreach ($optionalForeignKeys as $field) {
+            if (isset($data[$field]) && (empty($data[$field]) || $data[$field] === '')) {
+                $data[$field] = null;
+            }
+        }
+        
+        // Gestione campi numerici opzionali - imposta NULL se vuoti
+        $optionalNumericFields = ['costo_stimato', 'costo_effettivo'];
+        foreach ($optionalNumericFields as $field) {
             if (isset($data[$field]) && (empty($data[$field]) || $data[$field] === '')) {
                 $data[$field] = null;
             }

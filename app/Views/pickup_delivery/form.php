@@ -44,6 +44,11 @@
                 <form action="<?= $action ?>" method="post" id="form-pickup-delivery">
                     <?= csrf_field() ?>
                     
+                    <!-- Campo nascosto per utente creatore -->
+                    <?php if (!isset($operazione)): ?>
+                        <input type="hidden" name="id_utente_creatore" value="<?= session('utente_id') ?>">
+                    <?php endif; ?>
+                    
                     <div class="card-body">
                         <div class="row">
                             <!-- Colonna sinistra -->
